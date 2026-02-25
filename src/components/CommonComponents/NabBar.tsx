@@ -27,7 +27,6 @@ const NavBar = () => {
     router.push("/sign-in");
   };
   if (
-    pathname == "/" ||
     pathname == "/sign-in" ||
     pathname == "/sign-up" ||
     pathname == "/create-new-pass" ||

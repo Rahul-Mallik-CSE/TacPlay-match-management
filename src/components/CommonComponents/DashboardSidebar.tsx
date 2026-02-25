@@ -72,7 +72,6 @@ export default function DashboardSidebar() {
   };
 
   if (
-    pathname == "/" ||
     pathname == "/sign-in" ||
     pathname == "/sign-up" ||
     pathname == "/create-new-pass" ||
@@ -170,7 +169,7 @@ export default function DashboardSidebar() {
                 "flex text-black grow items-center justify-center bg-gray-50 font-medium hover:bg-[#F5E9EA] hover:text-[#9E2729]",
                 isCollapsed
                   ? "rounded-md w-8 h-8 p-0"
-                  : "h-10 md:h-12 w-full gap-2 rounded-md p-3"
+                  : "h-10 md:h-12 w-full gap-2 rounded-md p-3",
               )}
               onClick={() => setIsLogoutModalOpen(true)}
             >
@@ -222,7 +221,7 @@ function NavItem({
               : "flex items-center gap-3 h-10 md:h-12 rounded-md p-3 transition-colors text-sm",
             active
               ? "bg-[#9E2729]  text-white hover:bg-[#9E2729]! hover:text-white! font-medium"
-              : "text-gray-700  hover:bg-[#F5E9EA]! hover:text-[#9E2729]!  font-medium"
+              : "text-gray-700  hover:bg-[#F5E9EA]! hover:text-[#9E2729]!  font-medium",
           )}
         >
           <Icon size={collapsed ? 20 : 18} />
