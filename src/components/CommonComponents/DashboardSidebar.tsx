@@ -26,12 +26,14 @@ import {
 } from "lucide-react";
 import { Button } from "../ui/button";
 import LogoutModal from "./LogOutModal";
+import UpgradeModal from "./UpgradeModal";
 
 export default function DashboardSidebar() {
   const { state } = useSidebar();
   const pathname = usePathname();
   const router = useRouter();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 
   const isCollapsed = state === "collapsed";
 
@@ -161,6 +163,7 @@ export default function DashboardSidebar() {
           {isCollapsed ? (
             <div className="flex justify-center mb-2">
               <Button
+                onClick={() => setIsUpgradeModalOpen(true)}
                 className="w-10 h-10 rounded-full flex items-center justify-center bg-linear-to-br from-[#980009] to-[#C00069] border-2 border-[#cdba20] shadow-lg"
                 title="Upgrade to Premium"
               >
@@ -186,7 +189,10 @@ export default function DashboardSidebar() {
                   <p className="text-primary text-sm font-semibold leading-snug mb-0.5">
                     Upgrade to Premium for more Features
                   </p>
-                  <Button className="w-full flex items-center justify-center gap-2 bg-linear-to-r from-[#980009] via-[#C00069] to-[#980009] text-white font-bold py-2.5 rounded-xl text-sm hover:opacity-90 transition-opacity shadow-[0_0_10px_rgba(192,0,105,0.4)]">
+                  <Button
+                    onClick={() => setIsUpgradeModalOpen(true)}
+                    className="w-full flex items-center justify-center gap-2 bg-linear-to-r from-[#980009] via-[#C00069] to-[#980009] text-white font-bold py-2.5 rounded-xl text-sm hover:opacity-90 transition-opacity shadow-[0_0_10px_rgba(192,0,105,0.4)]"
+                  >
                     <Crown size={15} className="text-[#cdba20]" />
                     Upgrade
                   </Button>
@@ -225,6 +231,10 @@ export default function DashboardSidebar() {
         isOpen={isLogoutModalOpen}
         onClose={() => setIsLogoutModalOpen(false)}
         onConfirm={handleLogout}
+      />
+      <UpgradeModal
+        isOpen={isUpgradeModalOpen}
+        onClose={() => setIsUpgradeModalOpen(false)}
       />
     </>
   );
