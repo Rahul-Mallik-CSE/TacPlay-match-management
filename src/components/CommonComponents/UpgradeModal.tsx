@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Check, X } from "lucide-react";
 import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { Button } from "../ui/button";
 
 interface UpgradeModalProps {
   isOpen: boolean;
@@ -31,7 +32,7 @@ const plans = [
     popular: false,
     borderClass: "border border-[#2C2740]",
     selectedBorderClass:
-      "border-2 border-[#cdba20] shadow-[0_0_20px_rgba(205,186,32,0.3)]",
+      "border-2 border-transparent bg-[linear-gradient(#0b0b0f,#0b0b0f)_padding-box,linear-gradient(135deg,#cdba20,#C00069)_border-box] shadow-[0_0_24px_rgba(205,186,32,0.35)]",
   },
   {
     id: "silver",
@@ -76,7 +77,7 @@ const plans = [
     popular: false,
     borderClass: "border border-[#2C2740]",
     selectedBorderClass:
-      "border-2 border-[#cdba20] shadow-[0_0_20px_rgba(205,186,32,0.3)]",
+      "border-2 border-transparent bg-[linear-gradient(#0b0b0f,#0b0b0f)_padding-box,linear-gradient(135deg,#cdba20,#C00069)_border-box] shadow-[0_0_24px_rgba(205,186,32,0.35)]",
   },
 ];
 
@@ -103,10 +104,10 @@ export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
             </button>
           </DialogClose>
 
-          <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
+          <h2 className="text-2xl md:text-3xl font-bold text-primary mb-2">
             Power Your Field. Control Every Match.
           </h2>
-          <p className="text-[#9a98b8] text-sm max-w-md mx-auto leading-relaxed">
+          <p className="text-secondary text-sm max-w-md mx-auto leading-relaxed">
             Choose a plan that unlocks the right tools to manage sessions, host
             ranked games, and grow your arena on TACPLAY.
           </p>
@@ -129,9 +130,9 @@ export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
                 {/* Popular badge */}
                 {plan.popular && (
                   <div className="absolute top-4 right-4">
-                    <span className="bg-[#980009] text-white text-xs font-semibold px-3 py-1 rounded-full">
+                    <Button className="bg-custom-red text-primary text-xs font-semibold px-3 py-1 ">
                       Popular
-                    </span>
+                    </Button>
                   </div>
                 )}
 
