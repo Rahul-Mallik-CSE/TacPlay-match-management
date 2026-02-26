@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { UserCog, Key, LogOut } from "lucide-react";
+import { UserCog, LogOut } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import LogoutModal from "./LogOutModal";
@@ -83,7 +83,7 @@ const NavBar = () => {
             >
               <DropdownMenuItem className="flex items-center gap-3 px-4 py-3 cursor-pointer">
                 <UserCog className="w-5 h-5 text-blue-500" />
-                <span className="text-base">Manage Account</span>
+                <span className="text-base">Setting</span>
               </DropdownMenuItem>
 
               <DropdownMenuItem

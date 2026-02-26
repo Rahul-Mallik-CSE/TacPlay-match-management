@@ -182,18 +182,16 @@ export default function DashboardSidebar() {
                     <Crown size={20} className="text-[#cdba20]" />
                   </div>
                 </div>
-                <p className="text-white text-sm font-semibold leading-snug">
-                  Upgrade to Premium
-                  <br />
-                  <span className="text-[#9a98b8] font-normal text-xs">
-                    for more Features
-                  </span>
-                </p>
+                <div>
+                  <p className="text-primary text-sm font-semibold leading-snug mb-0.5">
+                    Upgrade to Premium for more Features
+                  </p>
+                  <Button className="w-full flex items-center justify-center gap-2 bg-linear-to-r from-[#980009] via-[#C00069] to-[#980009] text-white font-bold py-2.5 rounded-xl text-sm hover:opacity-90 transition-opacity shadow-[0_0_10px_rgba(192,0,105,0.4)]">
+                    <Crown size={15} className="text-[#cdba20]" />
+                    Upgrade
+                  </Button>
+                </div>
               </div>
-              <Button className="w-full flex items-center justify-center gap-2 bg-linear-to-r from-[#980009] via-[#C00069] to-[#980009] text-white font-bold py-2.5 rounded-xl text-sm hover:opacity-90 transition-opacity shadow-[0_0_10px_rgba(192,0,105,0.4)]">
-                <Crown size={15} className="text-[#cdba20]" />
-                Upgrade
-              </Button>
             </div>
           )}
 
