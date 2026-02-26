@@ -2,8 +2,10 @@
 
 import React from "react";
 
-const EarninsPage = () => {
-  return <div>EarninsPage</div>;
+const EarningsPage = () => {
+  return <div>EarningsPage</div>;
 };
 
-export default EarninsPage;
+export default EarningsPage;
+
+
