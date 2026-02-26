@@ -22,7 +22,7 @@ import {
   Calendar,
   Bell,
   Settings,
-  LogOut,
+  Crown,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import LogoutModal from "./LogOutModal";
@@ -37,24 +37,29 @@ export default function DashboardSidebar() {
 
   const navItems = [
     {
-      href: "/overview",
+      href: "/dashboard",
       icon: LayoutGrid,
-      label: "Overview",
+      label: "Dashboard",
     },
     {
-      href: "/todays-jobs",
+      href: "/sessions",
       icon: Calendar,
-      label: "Today's Jobs",
+      label: "Sessions",
     },
     {
-      href: "/all-jobs",
+      href: "/booking-list",
       icon: Briefcase,
-      label: "All Jobs",
+      label: "Booking List",
     },
     {
-      href: "/notifications",
+      href: "/earnings",
       icon: Bell,
-      label: "Notifications",
+      label: "Earnings",
+    },
+    {
+      href: "/arena-management",
+      icon: Settings,
+      label: "Arena Management",
     },
     {
       href: "/settings",
@@ -90,52 +95,44 @@ export default function DashboardSidebar() {
 
       {/* Sidebar content goes here */}
       <Sidebar
-        className="shadow-none px-3 py-4 md:px-2 bg-white border-r border-gray-200"
+        className={`shadow-none  py-4  bg-root-bg border-r border-none ${isCollapsed ? "px-1" : "px-4"}`}
         collapsible="icon"
       >
-        <SidebarContent className="bg-white rounded-tr-xl shadow-none">
+        <SidebarContent
+          className={`bg-background  border-t-2 border-l-2 border-r-2 border-[#2C2740] shadow-neutral-600 rounded-t-4xl
+                      ${isCollapsed ? "px-0.5" : "px-2"}`}
+        >
           <div
-            className={`mb-2 flex h-20 items-end justify-start rounded-md bg-[#9E2729] md:h-40 ${
+            className={`mb-6  flex  items-center justify-center rounded-md   ${
               isCollapsed
                 ? " flex items-center w-full justify-center mx-auto p-1 "
                 : "gap-2"
             }`}
           >
-            <Link href="/overview" className="flex gap-2 ">
+            <Link href="/" className="flex gap-2 ">
               {isCollapsed ? (
-                <h1 className="mt-2 mb-3 font-bold text-sm text-white rounded-full px-1 border-2 border-gray-200">
-                  B
-                </h1>
+                <Image src="/logo.png" alt="Logo" width={40} height={40} />
               ) : (
-                // <div className="mt-2 flex items-center gap-2">
-                //   <Image src="/logo.png" alt="Logo" width={70} height={70} />
-                // </div>
-                <div className="pl-4 flex flex-col justify-center items-center">
-                  {/* Logo dots */}
-                  <div className="flex gap-0.5 sm:gap-1 justify-center mb-1 ">
-                    <div className="w-8 h-4 sm:w-6 sm:h-3 rounded-full bg-white"></div>
-                    <div className="w-4 h-4 sm:w-3 sm:h-3 rounded-full bg-white"></div>
-                    <div className="w-4 h-4 sm:w-3 sm:h-3 rounded-full bg-white"></div>
-                    <div className="w-4 h-4 sm:w-3 sm:h-3 rounded-full bg-white"></div>
-                  </div>
-
-                  {/* Beebeeh text */}
-                  <h1 className="text-xl  font-bold text-white mb-3 sm:mb-4">
-                    Beebeeh
-                  </h1>
+                <div className="mt-2 flex items-center gap-2">
+                  <Image
+                    src="/Tacplay-logo-2.png"
+                    alt="Logo"
+                    width={150}
+                    height={150}
+                  />
                 </div>
               )}
             </Link>
             {/* Toggle button for mobile */}
 
             {/* Collapse button for desktop */}
-            <div
+            {/* <div
               className={`absolute top-6 hidden md:block ${
                 isCollapsed ? "right-2" : "right-2"
               }`}
             >
               <SidebarTrigger className="text-white hover:bg-transparent hover:text-white" />
-            </div>
+            </div> */}
           </div>
           <SidebarMenu
             className={
@@ -159,9 +156,49 @@ export default function DashboardSidebar() {
             ))}
           </SidebarMenu>
         </SidebarContent>
-        <SidebarFooter className="pb-4 bg-white rounded-br-2xl shadow-none">
-          {/* Footer content can go here if needed */}
-          <div className="w-full flex justify-center">
+        <SidebarFooter className="pb-16 bg-background rounded-b-4xl border-r-2 border-b-2 border-l-2 border-[#2C2740] shadow-neutral-600">
+          {/* Upgrade Banner */}
+          {isCollapsed ? (
+            <div className="flex justify-center mb-2">
+              <Button
+                className="w-10 h-10 rounded-full flex items-center justify-center bg-linear-to-br from-[#980009] to-[#C00069] border-2 border-[#cdba20] shadow-lg"
+                title="Upgrade to Premium"
+              >
+                <Crown size={18} className="text-[#cdba20]" />
+              </Button>
+            </div>
+          ) : (
+            <div className="mx-2 mb-3 rounded-2xl border border-[#C00069] bg-[#100F17] p-3 shadow-[0_0_12px_rgba(192,0,105,0.25)]">
+              <div className="flex items-center gap-3 mb-3">
+                {/* Seal badge */}
+                <div className="relative shrink-0">
+                  <div
+                    className="w-12 h-12 bg-[#980009] flex items-center justify-center"
+                    style={{
+                      clipPath:
+                        "polygon(50% 0%,61% 15%,79% 9%,75% 28%,93% 35%,82% 50%,93% 65%,75% 72%,79% 91%,61% 85%,50% 100%,39% 85%,21% 91%,25% 72%,7% 65%,18% 50%,7% 35%,25% 28%,21% 9%,39% 15%)",
+                    }}
+                  >
+                    <Crown size={20} className="text-[#cdba20]" />
+                  </div>
+                </div>
+                <p className="text-white text-sm font-semibold leading-snug">
+                  Upgrade to Premium
+                  <br />
+                  <span className="text-[#9a98b8] font-normal text-xs">
+                    for more Features
+                  </span>
+                </p>
+              </div>
+              <Button className="w-full flex items-center justify-center gap-2 bg-linear-to-r from-[#980009] via-[#C00069] to-[#980009] text-white font-bold py-2.5 rounded-xl text-sm hover:opacity-90 transition-opacity shadow-[0_0_10px_rgba(192,0,105,0.4)]">
+                <Crown size={15} className="text-[#cdba20]" />
+                Upgrade
+              </Button>
+            </div>
+          )}
+
+          {/* Logout */}
+          {/* <div className="w-full flex justify-center">
             <Button
               variant="default"
               size="sm"
@@ -182,7 +219,7 @@ export default function DashboardSidebar() {
                 </>
               )}
             </Button>
-          </div>
+          </div> */}
         </SidebarFooter>
       </Sidebar>
 
@@ -217,11 +254,11 @@ function NavItem({
           href={href}
           className={cn(
             collapsed
-              ? "flex items-center justify-center px-2 py-3 transition-colors rounded-full w-12 h-12 mx-auto"
-              : "flex items-center gap-3 h-10 md:h-12 rounded-md p-3 transition-colors text-sm",
+              ? "flex items-center justify-center px-2 py-3 transition-colors rounded-full w-12 h-10 mx-auto"
+              : "flex items-center gap-3 h-10 md:h-10 rounded-md p-3 transition-colors text-sm",
             active
-              ? "bg-[#9E2729]  text-white hover:bg-[#9E2729]! hover:text-white! font-medium"
-              : "text-gray-700  hover:bg-[#F5E9EA]! hover:text-[#9E2729]!  font-medium",
+              ? "bg-custom-red  text-primary hover:bg-custom-red! hover:text-white! font-medium border-4 border-border shadow-md"
+              : "text-secondary  hover:bg-transparent! hover:text-primary!  font-medium",
           )}
         >
           <Icon size={collapsed ? 20 : 18} />

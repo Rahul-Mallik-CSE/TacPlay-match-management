@@ -36,16 +36,16 @@ const NavBar = () => {
   )
     return null;
   return (
-    <div className="w-full sticky top-0 z-9 px-2 sm:px-4">
-      <div className="max-w-[2500px] rounded-2xl mx-auto flex items-center justify-between bg-white border border-gray-200 px-3 sm:px-4 md:px-6 py-3">
-        <div className="flex gap-2 items-center">
+    <div className="w-full sticky top-0 z-9 ">
+      <div className="max-w-625 rounded-2xl mx-auto flex items-center justify-between  px-3  py-3">
+        <div className="flex gap-2 items-center justify-center">
           {/* mobile menu button */}
-          <div className=" rounded-sm  md:hidden">
+          <div className=" rounded-sm ">
             <SidebarTrigger />
           </div>
           {/* Left side - Title */}
-          <h1 className="text-sm sm:text-base md:text-lg lg:text-2xl 2xl:text-3xl font-bold text-gray-800 truncate">
-            Technician Dashboard
+          <h1 className="text-sm sm:text-base md:text-lg lg:text-2xl 2xl:text-3xl font-bold text-primary truncate">
+            Dashboard
           </h1>
         </div>
 
@@ -54,16 +54,16 @@ const NavBar = () => {
           {/* Notification Bell */}
           <button
             onClick={() => router.push("/notifications")}
-            className="cursor-pointer relative p-1.5 sm:p-2 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
+            className="cursor-pointer text-secondary hover:text-primary border border-secondary  hover:border-primary relative p-1.5 sm:p-2  rounded-full transition-colors shrink-0"
           >
-            <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
-            <span className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            <Bell className="w-4 h-4 sm:w-5 sm:h-5 " />
+            <span className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 w-2 h-2 bg-[#E1BD25] rounded-full"></span>
           </button>
 
           {/* Profile Dropdown */}
           <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center gap-1 sm:gap-2 hover:bg-gray-50 rounded-lg px-1 sm:px-2 py-1 transition-colors flex-shrink-0">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-red-800 flex items-center justify-center overflow-hidden flex-shrink-0">
+            <DropdownMenuTrigger className="flex cursor-pointer border border-transparent hover:border-secondary items-center gap-1 sm:gap-2  rounded-lg px-1 sm:px-2 py-1 transition-colors shrink-0">
+              <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-red-800 flex items-center justify-center overflow-hidden shrink-0">
                 <Image
                   src="/logo.png"
                   alt="Profile"
@@ -73,20 +73,19 @@ const NavBar = () => {
                 />
               </div>
               <div className="text-left hidden sm:block">
-                <p className="text-sm font-medium text-gray-800">Moni Roy</p>
-                <p className="text-xs text-gray-500">Technician</p>
+                <p className="text-sm font-medium text-primary">Moni Roy</p>
               </div>
-              <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600 hidden sm:block" />
+              <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-primary hidden sm:block" />
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 mt-2">
+            <DropdownMenuContent
+              align="end"
+              className="w-56 mt-2 border border-secondary bg-background rounded-lg shadow-lg"
+            >
               <DropdownMenuItem className="flex items-center gap-3 px-4 py-3 cursor-pointer">
                 <UserCog className="w-5 h-5 text-blue-500" />
                 <span className="text-base">Manage Account</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className="flex items-center gap-3 px-4 py-3 cursor-pointer">
-                <Key className="w-5 h-5 text-pink-500" />
-                <span className="text-base">Change Password</span>
-              </DropdownMenuItem>
+
               <DropdownMenuItem
                 onClick={() => setIsLogoutModalOpen(true)}
                 className="flex items-center gap-3 px-4 py-3 cursor-pointer"
