@@ -37,7 +37,7 @@ export default function DashboardSidebar() {
 
   const navItems = [
     {
-      href: "/dashboard",
+      href: "/",
       icon: LayoutGrid,
       label: "Dashboard",
     },
