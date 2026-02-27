@@ -27,6 +27,10 @@ import {
 import { Button } from "../ui/button";
 import LogoutModal from "./LogOutModal";
 import UpgradeModal from "./UpgradeModal";
+import { CiTrophy } from "react-icons/ci";
+import { IoDocumentTextOutline } from "react-icons/io5";
+import { BiMoneyWithdraw } from "react-icons/bi";
+import { GrUserManager } from "react-icons/gr";
 
 export default function DashboardSidebar() {
   const { state } = useSidebar();
@@ -45,22 +49,22 @@ export default function DashboardSidebar() {
     },
     {
       href: "/sessions",
-      icon: Calendar,
+      icon: CiTrophy,
       label: "Sessions",
     },
     {
       href: "/booking-list",
-      icon: Briefcase,
+      icon: IoDocumentTextOutline,
       label: "Booking List",
     },
     {
       href: "/earnings",
-      icon: Bell,
+      icon: BiMoneyWithdraw,
       label: "Earnings",
     },
     {
       href: "/arena-management",
-      icon: Settings,
+      icon: GrUserManager,
       label: "Arena Management",
     },
     {

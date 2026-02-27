@@ -95,7 +95,7 @@ export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
           <DialogClose asChild>
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 flex items-center gap-1.5 text-[#9a98b8] hover:text-white text-sm font-medium transition-colors"
+              className="cursor-pointer absolute top-4 right-4 flex items-center gap-1.5 text-[#9a98b8] hover:text-white text-sm font-medium transition-colors"
             >
               Cancel
               <span className="w-6 h-6 rounded-full border border-[#2C2740] flex items-center justify-center">
@@ -138,14 +138,6 @@ export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
 
                 {/* Plan name + avatars */}
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="flex -space-x-2">
-                    <div className="w-8 h-8 rounded-full bg-[#525273] border-2 border-[#0b0b0f] flex items-center justify-center text-[10px] font-bold text-white">
-                      S
-                    </div>
-                    <div className="w-8 h-8 rounded-full bg-[#7c5cad] border-2 border-[#0b0b0f] flex items-center justify-center text-[10px] font-bold text-white">
-                      R
-                    </div>
-                  </div>
                   <span className="text-white font-semibold text-sm">
                     {plan.name}
                   </span>
