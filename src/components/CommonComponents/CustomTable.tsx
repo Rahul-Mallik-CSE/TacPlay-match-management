@@ -20,7 +20,6 @@ import {
 } from "@/components/ui/pagination";
 import { View } from "lucide-react";
 import { cn } from "@/lib/utils";
-import FilterCard, { FilterState } from "./FilterCard";
 
 interface CustomTableProps<T> {
   data: T[];
@@ -58,93 +57,9 @@ const CustomTable = <T extends Record<string, any>>({
       .join("");
   };
 
-  // Apply filtering and sorting to data
-  const filteredAndSortedData = useMemo(() => {
-    let result = [...data];
+ 
 
-    if (filterState) {
-      // Apply column filters (text search)
-      if (filterState.columnFilters.length > 0) {
-        result = result.filter((row) => {
-          return filterState.columnFilters.every((filter) => {
-            const value = row[filter.column];
-            if (value == null) return false;
-            return String(value)
-              .toLowerCase()
-              .includes(filter.value.toLowerCase());
-          });
-        });
-      }
-
-      // Apply status filter
-      if (filterState.statusFilter) {
-        const statusColumn = columns.find(
-          (col) => col.header.toLowerCase() === "status"
-        );
-        if (statusColumn) {
-          const dataKey =
-            typeof statusColumn.accessor === "string"
-              ? statusColumn.accessor
-              : getDataKeyFromHeader(statusColumn.header);
-          result = result.filter((row) => {
-            const value = row[dataKey as keyof T];
-            return String(value) === filterState.statusFilter;
-          });
-        }
-      }
-
-      // Apply ID sorting
-      if (filterState.idSort) {
-        const idColumn = columns.find(
-          (col) =>
-            col.header.toLowerCase() === "id" ||
-            col.header.toLowerCase().includes("id")
-        );
-        if (idColumn) {
-          const dataKey =
-            typeof idColumn.accessor === "string"
-              ? idColumn.accessor
-              : getDataKeyFromHeader(idColumn.header);
-          result.sort((a, b) => {
-            const aValue = a[dataKey as keyof T];
-            const bValue = b[dataKey as keyof T];
-
-            // Handle null/undefined values
-            if (aValue == null && bValue == null) return 0;
-            if (aValue == null) return 1;
-            if (bValue == null) return -1;
-
-            // Compare values
-            let comparison = 0;
-            if (typeof aValue === "number" && typeof bValue === "number") {
-              comparison = aValue - bValue;
-            } else {
-              comparison = String(aValue).localeCompare(String(bValue));
-            }
-
-            return filterState.idSort === "asc" ? comparison : -comparison;
-          });
-        }
-      }
-    }
-
-    return result;
-  }, [data, filterState, columns]);
-
-  const totalPages = Math.ceil(filteredAndSortedData.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentData = filteredAndSortedData.slice(startIndex, endIndex);
-
-  const handleApplyFilter = (newFilterState: FilterState) => {
-    setFilterState(newFilterState);
-    setCurrentPage(1); // Reset to first page when filter is applied
-  };
-
-  const handleClearFilter = () => {
-    setFilterState(null);
-    setCurrentPage(1);
-  };
+ 
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -231,13 +146,7 @@ const CustomTable = <T extends Record<string, any>>({
         ) : (
           <div></div>
         )}
-        <FilterCard
-          columns={columns}
-          data={data}
-          onApplyFilter={handleApplyFilter}
-          onClearFilter={handleClearFilter}
-          currentFilter={filterState || undefined}
-        />
+        
       </div>
 
       {/* Table Container with Horizontal Scroll */}
