@@ -1,9 +1,10 @@
 /** @format */
 
 import React from "react";
+import SessionTable from "@/components/SessionComponents/SessionTable";
 
 const SessionsPage = () => {
-  return <div>SessionsPage</div>;
+  return <SessionTable />;
 };
 
 export default SessionsPage;

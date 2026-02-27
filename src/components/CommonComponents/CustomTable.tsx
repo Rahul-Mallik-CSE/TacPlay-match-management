@@ -1,6 +1,6 @@
 /** @format */
 "use client";
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import {
   Table,
   TableBody,
@@ -18,7 +18,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { View } from "lucide-react";
+import { Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface CustomTableProps<T> {
@@ -31,7 +31,6 @@ interface CustomTableProps<T> {
   onAction?: (row: T) => void;
   itemsPerPage?: number;
   title?: string;
-
   additionalCount?: number;
 }
 
@@ -40,37 +39,31 @@ const CustomTable = <T extends Record<string, any>>({
   columns,
   onAction,
   itemsPerPage = 10,
-  title,
 }: CustomTableProps<T>) => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [filterState, setFilterState] = useState<FilterState | null>(null);
 
-  // Helper function to get the data key from column header
-  const getDataKeyFromHeader = (header: string): string => {
-    const words = header.split(" ");
-    return words
-      .map((word, index) =>
-        index === 0
-          ? word.toLowerCase()
-          : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-      )
-      .join("");
-  };
-
- 
-
- 
+  const totalPages = Math.ceil(data.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentData = data.slice(startIndex, endIndex);
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
-      case "pending":
-        return "bg-yellow-100 text-yellow-700";
-      case "in progress":
-        return "bg-cyan-100 text-cyan-700";
+      case "open":
+        return "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+      case "paid":
+        return "bg-blue-500/20 text-blue-400 border border-blue-500/30";
+      case "ongoing":
+        return "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30";
       case "complete":
-        return "bg-blue-100 text-blue-700";
+      case "completed":
+        return "bg-green-500/20 text-green-400 border border-green-500/30";
+      case "cancelled":
+        return "bg-custom-red/20 text-red-400 border border-custom-red/30";
+      case "pending":
+        return "bg-custom-yellow/20 text-yellow-400 border border-custom-yellow/30";
       default:
-        return "bg-gray-100 text-gray-700";
+        return "bg-secondary/20 text-secondary border border-secondary/30";
     }
   };
 
@@ -81,12 +74,11 @@ const CustomTable = <T extends Record<string, any>>({
 
     const value = row[column.accessor as keyof T];
 
-    // Special rendering for status
     if (column.header === "Status" && typeof value === "string") {
       return (
         <div
           className={cn(
-            "w-24 px-2  py-1 flex justify-center items-center rounded-md text-sm font-medium",
+            "w-24 px-2 py-1 flex justify-center items-center rounded-md text-xs font-medium",
             getStatusColor(value)
           )}
         >
@@ -137,29 +129,17 @@ const CustomTable = <T extends Record<string, any>>({
 
   return (
     <div className="w-full space-y-3 sm:space-y-4 overflow-x-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between px-2 sm:px-0 gap-4">
-        {title ? (
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold text-gray-800">
-            {title}
-          </h2>
-        ) : (
-          <div></div>
-        )}
-        
-      </div>
-
-      {/* Table Container with Horizontal Scroll */}
-      <div className="rounded-lg overflow-hidden border border-gray-200 sm:border-0">
+      {/* Table Container */}
+      <div className="rounded-xl overflow-hidden border border-white/5">
         <div className="overflow-x-auto">
           <Table className="border-none min-w-full">
             <TableHeader>
-              <TableRow className="bg-[#F1F4F9] hover:bg-[#F1F4F9] border-none">
+              <TableRow className="bg-muted/50 hover:bg-muted/50 border-b border-white/5">
                 {columns.map((column, index) => (
                   <TableHead
                     key={index}
                     className={cn(
-                      "font-semibold text-gray-700 text-xs sm:text-sm py-2 sm:py-3 whitespace-nowrap",
+                      "font-medium text-secondary text-xs sm:text-sm py-3 sm:py-4 whitespace-nowrap",
                       column.className
                     )}
                   >
@@ -167,7 +147,7 @@ const CustomTable = <T extends Record<string, any>>({
                   </TableHead>
                 ))}
                 {onAction && (
-                  <TableHead className="font-semibold text-gray-700 text-xs sm:text-sm text-right py-2 sm:py-3 whitespace-nowrap">
+                  <TableHead className="font-medium text-secondary text-xs sm:text-sm text-right py-3 sm:py-4 whitespace-nowrap">
                     Action
                   </TableHead>
                 )}
@@ -177,13 +157,13 @@ const CustomTable = <T extends Record<string, any>>({
               {currentData.map((row, rowIndex) => (
                 <TableRow
                   key={rowIndex}
-                  className="hover:bg-gray-50 transition-colors"
+                  className="border-b border-white/5 hover:bg-muted/30 transition-colors"
                 >
                   {columns.map((column, colIndex) => (
                     <TableCell
                       key={colIndex}
                       className={cn(
-                        "text-gray-700 py-3 sm:py-5 text-xs sm:text-sm whitespace-nowrap",
+                        "text-primary/80 py-3 sm:py-4 text-xs sm:text-sm whitespace-nowrap",
                         column.className
                       )}
                     >
@@ -191,12 +171,12 @@ const CustomTable = <T extends Record<string, any>>({
                     </TableCell>
                   ))}
                   {onAction && (
-                    <TableCell className="text-right py-3 sm:py-5">
+                    <TableCell className="text-right py-3 sm:py-4">
                       <button
                         onClick={() => onAction(row)}
-                        className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-full transition-colors inline-flex items-center justify-center"
+                        className="p-1.5 sm:p-2 hover:bg-white/5 rounded-full transition-colors inline-flex items-center justify-center"
                       >
-                        <View className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
+                        <Eye className="w-4 h-4 sm:w-5 sm:h-5 text-custom-yellow" />
                       </button>
                     </TableCell>
                   )}
@@ -208,63 +188,79 @@ const CustomTable = <T extends Record<string, any>>({
       </div>
 
       {/* Pagination */}
-      <Pagination>
-        <PaginationContent className="flex-wrap gap-1">
-          <PaginationItem>
-            <PaginationPrevious
-              onClick={() => handlePageChange(currentPage - 1)}
-              className={cn(
-                "text-xs sm:text-sm h-8 sm:h-10 px-2 sm:px-4",
-                currentPage === 1
-                  ? "pointer-events-none opacity-50"
-                  : "cursor-pointer"
-              )}
-            />
-          </PaginationItem>
-
-          {getPageNumbers().map((page, index) => (
-            <PaginationItem key={index} className="hidden xs:inline-flex">
-              {page === "..." ? (
-                <PaginationEllipsis className="h-8 sm:h-10" />
-              ) : (
-                <PaginationLink
-                  onClick={() => handlePageChange(page as number)}
-                  isActive={currentPage === page}
+      <div className="flex items-center justify-between px-2">
+        <p className="text-xs text-secondary">
+          Showing {startIndex + 1} to {Math.min(endIndex, data.length)} of{" "}
+          {data.length} entries
+        </p>
+        <div className="flex items-center gap-2">
+          <Pagination>
+            <PaginationContent className="flex-wrap gap-1">
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => handlePageChange(currentPage - 1)}
                   className={cn(
-                    "cursor-pointer text-xs sm:text-sm h-8 sm:h-10 w-8 sm:w-10",
-                    currentPage === page &&
-                      "bg-red-800 text-white hover:bg-red-700 hover:text-white"
+                    "text-xs sm:text-sm h-8 sm:h-10 px-2 sm:px-4 text-secondary hover:text-primary",
+                    currentPage === 1
+                      ? "pointer-events-none opacity-50"
+                      : "cursor-pointer"
                   )}
+                />
+              </PaginationItem>
+
+              {getPageNumbers().map((page, index) => (
+                <PaginationItem key={index} className="hidden sm:inline-flex">
+                  {page === "..." ? (
+                    <PaginationEllipsis className="h-8 sm:h-10 text-secondary" />
+                  ) : (
+                    <PaginationLink
+                      onClick={() => handlePageChange(page as number)}
+                      isActive={currentPage === page}
+                      className={cn(
+                        "cursor-pointer text-xs sm:text-sm h-8 sm:h-10 w-8 sm:w-10 text-secondary hover:text-primary",
+                        currentPage === page &&
+                          "bg-custom-red text-white hover:bg-custom-red/80 hover:text-white border-custom-red"
+                      )}
+                    >
+                      {page}
+                    </PaginationLink>
+                  )}
+                </PaginationItem>
+              ))}
+
+              <PaginationItem className="sm:hidden">
+                <PaginationLink
+                  isActive={true}
+                  className="cursor-default bg-custom-red text-white h-8 w-8 text-xs border-custom-red"
                 >
-                  {page}
+                  {currentPage}
                 </PaginationLink>
-              )}
-            </PaginationItem>
-          ))}
+              </PaginationItem>
 
-          {/* Mobile: Show only current page */}
-          <PaginationItem className="xs:hidden">
-            <PaginationLink
-              isActive={true}
-              className="cursor-default bg-red-800 text-white h-8 w-8 text-xs"
-            >
-              {currentPage}
-            </PaginationLink>
-          </PaginationItem>
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  className={cn(
+                    "text-xs sm:text-sm h-8 sm:h-10 px-2 sm:px-4 text-secondary hover:text-primary",
+                    currentPage === totalPages
+                      ? "pointer-events-none opacity-50"
+                      : "cursor-pointer"
+                  )}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
 
-          <PaginationItem>
-            <PaginationNext
-              onClick={() => handlePageChange(currentPage + 1)}
-              className={cn(
-                "text-xs sm:text-sm h-8 sm:h-10 px-2 sm:px-4",
-                currentPage === totalPages
-                  ? "pointer-events-none opacity-50"
-                  : "cursor-pointer"
-              )}
-            />
-          </PaginationItem>
-        </PaginationContent>
-      </Pagination>
+          <select
+            className="bg-muted border border-white/10 text-primary text-xs rounded-md px-2 py-1.5 outline-none"
+            defaultValue={itemsPerPage}
+          >
+            <option value={10}>Show 10</option>
+            <option value={25}>Show 25</option>
+            <option value={50}>Show 50</option>
+          </select>
+        </div>
+      </div>
     </div>
   );
 };
