@@ -29,10 +29,12 @@ const NavBar = () => {
   if (
     pathname == "/sign-in" ||
     pathname == "/sign-up" ||
+    pathname == "/forgot-pass" ||
     pathname == "/create-new-pass" ||
     pathname == "/reset-pass" ||
     pathname == "/verify-email" ||
-    pathname == "/verify-otp"
+    pathname == "/verify-otp" ||
+    pathname == "/profile-setup"
   )
     return null;
   return (
