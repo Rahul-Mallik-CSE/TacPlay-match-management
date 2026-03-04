@@ -6,6 +6,7 @@ import React, { useState } from "react";
 import { Eye, EyeOff, Pen } from "lucide-react";
 import EditAccountDialog from "@/components/SettingsComponents/EditAccountDialog";
 import ChangePasswordDialog from "@/components/SettingsComponents/ChangePasswordDialog";
+import { Button } from "@/components/ui/button";
 
 const SettingsPage = () => {
   const [editOpen, setEditOpen] = useState(false);
@@ -17,7 +18,9 @@ const SettingsPage = () => {
       <div className="max-w-625 mx-auto space-y-4 md:space-y-6">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-primary">Settings</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-primary">
+            Settings
+          </h1>
           <p className="text-sm text-secondary mt-1">
             Manage your personal information and account preferences.
           </p>
@@ -107,19 +110,19 @@ const SettingsPage = () => {
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3">
-            <button
+            <Button
               onClick={() => setPasswordOpen(true)}
-              className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg border border-white/10 text-sm text-primary font-medium hover:bg-white/5 transition-colors"
+              className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg border bg-transparent border-white/10 text-sm text-primary font-medium hover:bg-white/5 transition-colors"
             >
               Password Change
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => setEditOpen(true)}
-              className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-custom-red text-white text-sm font-medium hover:bg-custom-red/80 transition-colors"
+              className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg "
             >
               <Pen className="w-4 h-4" />
               Edit Profile
-            </button>
+            </Button>
           </div>
         </div>
 

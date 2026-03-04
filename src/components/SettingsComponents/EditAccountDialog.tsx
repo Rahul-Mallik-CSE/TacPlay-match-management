@@ -11,6 +11,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { Button } from "../ui/button";
 
 interface EditAccountDialogProps {
   open: boolean;
@@ -63,12 +64,12 @@ const EditAccountDialog: React.FC<EditAccountDialogProps> = ({
           </div>
 
           {/* Save Button */}
-          <button
+          <Button
             onClick={() => onOpenChange(false)}
             className="w-full py-2.5 rounded-lg bg-custom-red text-white text-sm font-medium hover:bg-custom-red/80 transition-colors"
           >
             Save Changes
-          </button>
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

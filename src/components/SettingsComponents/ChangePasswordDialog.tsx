@@ -11,6 +11,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { Button } from "../ui/button";
 
 interface ChangePasswordDialogProps {
   open: boolean;
@@ -152,12 +153,12 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
           )}
 
           {/* Submit Button */}
-          <button
+          <Button
             onClick={handleSubmit}
             className="w-full py-2.5 rounded-lg bg-custom-red text-white text-sm font-medium hover:bg-custom-red/80 transition-colors mt-1"
           >
             Change Password
-          </button>
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
