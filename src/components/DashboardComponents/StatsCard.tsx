@@ -23,7 +23,7 @@ const StatsCard: React.FC<StatsCardProps> = ({
   return (
     <div className="bg-card border border-white/5 rounded-xl p-5 flex flex-col gap-3 min-w-0 flex-1">
       <div className="flex items-start justify-between gap-2">
-        <h2 className="text-3xl font-bold text-primary tracking-tight">
+        <h2 className="text-xl md:text-3xl font-bold text-primary tracking-tight">
           {value}
         </h2>
         <span

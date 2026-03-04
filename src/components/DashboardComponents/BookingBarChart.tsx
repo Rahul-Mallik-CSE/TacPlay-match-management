@@ -53,10 +53,12 @@ const BookingBarChart: React.FC = () => {
       {/* Header */}
       <div className="flex items-start justify-between mb-1">
         <div>
-          <h3 className="text-base font-semibold text-primary">
+          <h3 className="text-base font-semibold text-secondary">
             Booking Source Breakdown
           </h3>
-          <h2 className="text-3xl font-bold text-primary mt-1">254,852</h2>
+          <h2 className="text-xl md:text-3xl font-bold text-primary mt-1">
+            254,852
+          </h2>
           <p className="text-xs text-secondary mt-0.5">
             Premium / Free&nbsp;&nbsp;&nbsp;45,762 / 2,491
           </p>
@@ -75,7 +77,7 @@ const BookingBarChart: React.FC = () => {
       </div>
 
       {/* Chart */}
-      <div className="w-full h-50 mt-4">
+      <div className="w-full h-32 sm:h-40 md:h-48 lg:h-50 mt-4">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={data}
@@ -107,14 +109,14 @@ const BookingBarChart: React.FC = () => {
               name="Premium"
               fill="#980009"
               radius={[3, 3, 0, 0]}
-              barSize={16}
+              barSize={12}
             />
             <Bar
               dataKey="free"
               name="Free"
               fill="#b4971e"
               radius={[3, 3, 0, 0]}
-              barSize={16}
+              barSize={12}
             />
           </BarChart>
         </ResponsiveContainer>

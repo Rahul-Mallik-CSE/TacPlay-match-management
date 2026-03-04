@@ -63,7 +63,9 @@ const RevenueChart: React.FC = () => {
           <p className="text-sm md:text-sm text-secondary mb-1">
             Total Revenue
           </p>
-          <h2 className="text-4xl font-bold text-primary">$650.5K</h2>
+          <h2 className="text-xl md:text-3xl font-bold text-primary">
+            $650.5K
+          </h2>
         </div>
         <div className="flex flex-col items-end gap-3">
           {/* Tabs */}
@@ -97,7 +99,7 @@ const RevenueChart: React.FC = () => {
       </div>
 
       {/* Chart */}
-      <div className="w-full h-70">
+      <div className="w-full h-40 sm:h-48 md:h-56 lg:h-64 xl:h-70">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={data}

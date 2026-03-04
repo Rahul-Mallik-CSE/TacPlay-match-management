@@ -23,16 +23,16 @@ const SessionPieChart: React.FC = () => {
       </h3>
 
       {/* Chart with center label */}
-      <div className="flex items-center justify-center relative">
-        <div className="w-45 h-45">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-center relative gap-4">
+        <div className="w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 lg:w-45 lg:h-45 mx-auto sm:mx-0">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
                 data={data}
                 cx="50%"
                 cy="50%"
-                innerRadius={55}
-                outerRadius={80}
+                innerRadius={45}
+                outerRadius={70}
                 paddingAngle={2}
                 dataKey="value"
                 startAngle={90}
@@ -50,15 +50,17 @@ const SessionPieChart: React.FC = () => {
           </ResponsiveContainer>
           {/* Center text */}
           <div className="absolute inset-0 flex items-center justify-center flex-col">
-            <span className="text-2xl font-bold text-primary">
+            <span className="text-xl sm:text-2xl font-bold text-primary">
               {totalSessions}
             </span>
-            <span className="text-[10px] text-secondary">Sessions</span>
+            <span className="text-[8px] sm:text-[10px] text-secondary">
+              Sessions
+            </span>
           </div>
         </div>
 
         {/* Right side labels */}
-        <div className="flex flex-col gap-2 ml-4">
+        <div className="flex flex-col gap-2 sm:ml-4">
           {data.map((entry, index) => (
             <div key={entry.name} className="flex items-center gap-2">
               <span
