@@ -59,13 +59,13 @@ const BookingDetailsSheet: React.FC<BookingDetailsSheetProps> = ({
             <div className="flex items-center justify-between">
               <button
                 onClick={() => onOpenChange(false)}
-                className="p-1 hover:bg-white/5 rounded-lg transition-colors"
+                className="cursor-pointer p-1 hover:bg-white/5 rounded-lg transition-colors"
               >
                 <ArrowLeft className="w-5 h-5 text-primary" />
               </button>
               <StatusBadge status={booking.status} />
             </div>
-            <SheetTitle className="text-2xl font-bold text-primary mt-3">
+            <SheetTitle className="text-xl font-bold text-primary ">
               Booking Details
             </SheetTitle>
             <SheetDescription className="text-sm text-secondary">
@@ -73,13 +73,13 @@ const BookingDetailsSheet: React.FC<BookingDetailsSheetProps> = ({
             </SheetDescription>
           </SheetHeader>
 
-          <div className="px-5 pb-5 space-y-6 mt-4">
+          <div className="px-5 pb-5 ">
             {/* Player Info */}
             <div>
               <h3 className="text-lg font-semibold text-primary mb-3">
                 Player Info
               </h3>
-              <div className="space-y-3">
+              <div className="">
                 <InfoRow label="Player ID" value="#CN 256" />
                 <InfoRow label="Player Name" value={booking.playerName} />
                 <InfoRow label="Email" value="name@gmail.com" />
@@ -92,7 +92,7 @@ const BookingDetailsSheet: React.FC<BookingDetailsSheetProps> = ({
               <h3 className="text-lg font-semibold text-primary mb-3">
                 Session Info
               </h3>
-              <div className="space-y-3">
+              <div className="">
                 <InfoRow label="Session ID" value="Imrul Hossain" />
                 <InfoRow label="Arena Name" value="Toffe Fun World" />
                 <InfoRow
@@ -114,7 +114,7 @@ const BookingDetailsSheet: React.FC<BookingDetailsSheetProps> = ({
               <h3 className="text-lg font-semibold text-primary mb-3">
                 Payment Info
               </h3>
-              <div className="space-y-3">
+              <div className="">
                 <InfoRow label="Booking ID" value={booking.bookingId} />
                 <InfoRow label="Transaction ID" value="#CNH 565" />
                 <InfoRow label="Amount" value="$25.25" />
