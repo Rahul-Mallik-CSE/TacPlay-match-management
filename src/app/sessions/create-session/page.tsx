@@ -50,8 +50,8 @@ const CreateSessionPage = () => {
   };
 
   return (
-    <div className="w-full px-4 sm:px-6 py-6">
-      <div className="max-w-2xl mx-auto space-y-8">
+    <div className="w-full py-2 md:py-3">
+      <div className="max-w-625 mx-auto space-y-4 md:space-y-6">
         {/* Header */}
         <div>
           <div className="flex items-center gap-3 mb-2">

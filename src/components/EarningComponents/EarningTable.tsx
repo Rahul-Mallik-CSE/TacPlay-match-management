@@ -94,7 +94,7 @@ const EarningTable = () => {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-primary">Earnings</h1>

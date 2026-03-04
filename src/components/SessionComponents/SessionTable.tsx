@@ -141,7 +141,7 @@ const SessionTable: React.FC = () => {
   };
 
   return (
-    <div className="w-full px-4 sm:px-6 py-6 space-y-5">
+    <div className="w-full  space-y-6">
       {/* Page Header */}
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold text-primary">
