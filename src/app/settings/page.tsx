@@ -13,7 +13,7 @@ const SettingsPage = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <div className="w-full py-2 md:py-3">
+    <div className="w-full p-3 md:p-4">
       <div className="max-w-625 mx-auto space-y-4 md:space-y-6">
         {/* Header */}
         <div className="mb-6">

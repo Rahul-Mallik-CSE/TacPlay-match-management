@@ -33,7 +33,7 @@ export default function LayoutWrapper({
     <SidebarProvider>
       <DashboardSidebar />
       <SidebarInset className="overflow-x-hidden">
-        <div className="bg-root-bg min-h-screen">
+        <div className="bg-root-bg min-h-screen ">
           <NavBar />
           {children}
         </div>

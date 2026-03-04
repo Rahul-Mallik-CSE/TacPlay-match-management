@@ -7,65 +7,115 @@ import { ArrowLeft, Eye } from "lucide-react";
 import Link from "next/link";
 import SessionInfoSheet from "@/components/SessionComponents/SessionDetailsComponents/SessionInfoSheet";
 import PlayerDetailsSheet from "@/components/SessionComponents/SessionDetailsComponents/PlayerDetailsSheet";
+import PlayerCard from "@/components/SessionComponents/SessionDetailsComponents/PlayerCard";
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
 
 // Player data type
 interface Player {
+  id: number;
   name: string;
   win: number;
   loses: number;
+  played: number;
   rank: number;
-  score: number | string;
+  score?: number;
+  image: string;
   team: "A" | "B";
 }
 
 const teamAPlayers: Player[] = [
   {
+    id: 1,
     name: "Elon Rektler",
     win: 95,
     loses: 25,
+    played: 120,
     rank: 195,
     score: 254,
-    team: "A",
-  },
-  { name: "Elon Rektler", win: 95, loses: 25, rank: 254, score: 20, team: "A" },
-  {
-    name: "Elon Rektler",
-    win: 95,
-    loses: 25,
-    rank: 195,
-    score: "+20",
+    image: "/left-player.jpg",
     team: "A",
   },
   {
+    id: 2,
     name: "Elon Rektler",
     win: 95,
     loses: 25,
+    played: 120,
     rank: 254,
-    score: "-",
+    score: 20,
+    image: "/left-player.jpg",
+    team: "A",
+  },
+  {
+    id: 3,
+    name: "Elon Rektler",
+    win: 95,
+    loses: 25,
+    played: 120,
+    rank: 195,
+    score: 20,
+    image: "/left-player.jpg",
+    team: "A",
+  },
+  {
+    id: 4,
+    name: "Elon Rektler",
+    win: 95,
+    loses: 25,
+    played: 120,
+    rank: 254,
+    score: undefined,
+    image: "/left-player.jpg",
     team: "A",
   },
 ];
 
 const teamBPlayers: Player[] = [
   {
+    id: 5,
     name: "Elon Rektler",
     win: 95,
     loses: 25,
+    played: 120,
     rank: 195,
-    score: "+20",
+    score: 20,
+    image: "/right-player.jpg",
     team: "B",
   },
-  { name: "Elon Rektler", win: 95, loses: 25, rank: 195, score: 20, team: "B" },
   {
+    id: 6,
     name: "Elon Rektler",
     win: 95,
     loses: 25,
+    played: 120,
     rank: 195,
-    score: "-",
+    score: 20,
+    image: "/right-player.jpg",
     team: "B",
   },
-  { name: "Elon Rektler", win: 95, loses: 25, rank: 195, score: 20, team: "B" },
+  {
+    id: 7,
+    name: "Elon Rektler",
+    win: 95,
+    loses: 25,
+    played: 120,
+    rank: 195,
+    score: undefined,
+    image: "/right-player.jpg",
+    team: "B",
+  },
+  {
+    id: 8,
+    name: "Elon Rektler",
+    win: 95,
+    loses: 25,
+    played: 120,
+    rank: 195,
+    score: 20,
+    image: "/right-player.jpg",
+    team: "B",
+  },
 ];
 
 const SessionDetailsPage = () => {
@@ -73,13 +123,13 @@ const SessionDetailsPage = () => {
   const [playerDetailsOpen, setPlayerDetailsOpen] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<string>("Elon Rektler");
 
-  const handleViewPlayerDetails = (playerName: string) => {
-    setSelectedPlayer(playerName);
+  const handleViewPlayerDetails = (player: Player) => {
+    setSelectedPlayer(player.name);
     setPlayerDetailsOpen(true);
   };
 
   return (
-    <div className="w-full py-2 md:py-3">
+    <div className="w-full p-3 md:p-4">
       <div className="max-w-625 mx-auto space-y-4 md:space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -93,13 +143,13 @@ const SessionDetailsPage = () => {
               Sessions Details
             </h1>
           </div>
-          <button
+          <Button
             onClick={() => setSessionInfoOpen(true)}
-            className="flex items-center gap-2 bg-custom-red hover:bg-custom-red/80 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
+            className="flex gap-2"
           >
             <Eye className="w-4 h-4" />
             <span className="hidden sm:inline">View Session Info</span>
-          </button>
+          </Button>
         </div>
 
         {/* Match Header Card */}
@@ -219,7 +269,7 @@ const SessionDetailsPage = () => {
               <PlayerCard
                 key={`teamA-${index}`}
                 player={player}
-                onViewDetails={() => handleViewPlayerDetails(player.name)}
+                onViewDetails={handleViewPlayerDetails}
               />
             ))}
           </div>
@@ -230,7 +280,7 @@ const SessionDetailsPage = () => {
               <PlayerCard
                 key={`teamB-${index}`}
                 player={player}
-                onViewDetails={() => handleViewPlayerDetails(player.name)}
+                onViewDetails={handleViewPlayerDetails}
               />
             ))}
           </div>
@@ -250,99 +300,5 @@ const SessionDetailsPage = () => {
     </div>
   );
 };
-
-// Player Card Component
-const PlayerCard = ({
-  player,
-  onViewDetails,
-}: {
-  player: Player;
-  onViewDetails: () => void;
-}) => {
-  const borderColor =
-    player.team === "A" ? "border-custom-red/50" : "border-custom-yellow/50";
-  const gradientBg =
-    player.team === "A"
-      ? "bg-gradient-to-r from-custom-red/10 to-transparent"
-      : "bg-gradient-to-r from-custom-yellow/10 to-transparent";
-
-  const scoreColor =
-    typeof player.score === "string"
-      ? player.score === "-"
-        ? "text-secondary"
-        : player.score.startsWith("+")
-          ? "text-custom-yellow"
-          : "text-custom-red"
-      : player.score > 100
-        ? "text-primary"
-        : "text-custom-red";
-
-  return (
-    <div
-      className={`border ${borderColor} rounded-xl overflow-hidden ${gradientBg}`}
-    >
-      <div className="flex items-center gap-3 p-3 sm:p-4">
-        {/* Avatar Placeholder */}
-        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-lg bg-muted overflow-hidden shrink-0 relative">
-          <div className="absolute inset-0 bg-linear-to-br from-custom-red/20 to-transparent" />
-          <div className="w-full h-full flex items-center justify-center text-2xl">
-            🎮
-          </div>
-        </div>
-
-        {/* Info Section */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <h4 className="text-sm font-semibold text-primary truncate">
-              {player.name}
-            </h4>
-            <button
-              onClick={onViewDetails}
-              className="shrink-0 px-3 py-1 text-xs font-medium bg-custom-red hover:bg-custom-red/80 text-white rounded-md transition-colors"
-            >
-              View Details
-            </button>
-          </div>
-
-          {/* Stats Row */}
-          <div className="flex items-center gap-4 sm:gap-6">
-            <StatItem label="Win" value={player.win} className="text-primary" />
-            <StatItem
-              label="Loses"
-              value={player.loses}
-              className="text-primary"
-            />
-            <StatItem
-              label="Rank"
-              value={player.rank}
-              className="text-primary"
-            />
-            <div className="text-center">
-              <p className={`text-sm sm:text-base font-bold ${scoreColor}`}>
-                {player.score}
-              </p>
-              <p className="text-[10px] text-secondary">Score</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const StatItem = ({
-  label,
-  value,
-  className = "",
-}: {
-  label: string;
-  value: number | string;
-  className?: string;
-}) => (
-  <div className="text-center">
-    <p className={`text-sm sm:text-base font-bold ${className}`}>{value}</p>
-    <p className="text-[10px] text-secondary">{label}</p>
-  </div>
-);
 
 export default SessionDetailsPage;

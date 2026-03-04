@@ -14,7 +14,7 @@ import BillingsTab from "@/components/ArenaManagementComponents/BillingsTab";
 
 const ArenaManagementPage = () => {
   return (
-    <div className="w-full py-2 md:py-3">
+    <div className="w-full p-3 md:p-4">
       <div className="max-w-625 mx-auto space-y-4 md:space-y-6">
         {/* Cover Image */}
         <div className="relative w-full h-32 sm:h-40 md:h-48 lg:h-56 overflow-hidden rounded-t-xl">
