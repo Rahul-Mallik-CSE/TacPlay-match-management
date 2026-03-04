@@ -12,6 +12,7 @@ import {
   FileImage,
 } from "lucide-react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 const CreateSessionPage = () => {
   const [sessionType, setSessionType] = useState<string>("");
@@ -56,7 +57,7 @@ const CreateSessionPage = () => {
         <div>
           <div className="flex items-center gap-3 mb-2">
             <Link href="/sessions">
-              <button className="p-1.5 hover:bg-white/5 rounded-lg transition-colors">
+              <button className="cursor-pointer p-1.5 hover:bg-white/5 rounded-lg transition-colors">
                 <ArrowLeft className="w-5 h-5 text-primary" />
               </button>
             </Link>
@@ -365,19 +366,16 @@ const CreateSessionPage = () => {
           {/* ── Action Buttons ── */}
           <div className="flex items-center justify-center gap-4 pt-4 pb-8">
             <Link href="/sessions">
-              <button
+              <Button
                 type="button"
-                className="px-10 py-2.5 rounded-lg border border-white/10 text-primary text-sm font-medium hover:bg-white/5 transition-colors"
+                className="cursor-pointer bg-transparent px-10 py-2.5 rounded-lg border border-white/10 text-primary text-sm font-medium hover:bg-white/5 transition-colors"
               >
                 Cancel
-              </button>
+              </Button>
             </Link>
-            <button
-              type="submit"
-              className="px-10 py-2.5 rounded-lg bg-custom-red text-white text-sm font-medium hover:bg-custom-red/80 transition-colors border border-custom-red"
-            >
+            <Button type="submit" className="">
               Create Session
-            </button>
+            </Button>
           </div>
         </form>
       </div>

@@ -85,7 +85,7 @@ const SessionDetailsPage = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link href="/sessions">
-              <button className="p-1.5 hover:bg-white/5 rounded-lg transition-colors">
+              <button className="cursor-pointer p-1.5 hover:bg-white/5 rounded-lg transition-colors">
                 <ArrowLeft className="w-5 h-5 text-primary" />
               </button>
             </Link>

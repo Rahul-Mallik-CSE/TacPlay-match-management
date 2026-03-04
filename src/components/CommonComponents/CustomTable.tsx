@@ -79,7 +79,7 @@ const CustomTable = <T extends Record<string, any>>({
         <div
           className={cn(
             "w-24 px-2 py-1 flex justify-center items-center rounded-md text-xs font-medium",
-            getStatusColor(value)
+            getStatusColor(value),
           )}
         >
           {value}
@@ -140,7 +140,7 @@ const CustomTable = <T extends Record<string, any>>({
                     key={index}
                     className={cn(
                       "font-medium text-secondary text-xs sm:text-sm py-3 sm:py-4 whitespace-nowrap",
-                      column.className
+                      column.className,
                     )}
                   >
                     {column.header}
@@ -164,7 +164,7 @@ const CustomTable = <T extends Record<string, any>>({
                       key={colIndex}
                       className={cn(
                         "text-primary/80 py-3 sm:py-4 text-xs sm:text-sm whitespace-nowrap",
-                        column.className
+                        column.className,
                       )}
                     >
                       {renderCell(row, column)}
@@ -174,7 +174,7 @@ const CustomTable = <T extends Record<string, any>>({
                     <TableCell className="text-right py-3 sm:py-4">
                       <button
                         onClick={() => onAction(row)}
-                        className="p-1.5 sm:p-2 hover:bg-white/5 rounded-full transition-colors inline-flex items-center justify-center"
+                        className="cursor-pointer p-1.5 sm:p-2 hover:bg-white/5 rounded-full transition-colors inline-flex items-center justify-center"
                       >
                         <Eye className="w-4 h-4 sm:w-5 sm:h-5 text-custom-yellow" />
                       </button>
@@ -203,7 +203,7 @@ const CustomTable = <T extends Record<string, any>>({
                     "text-xs sm:text-sm h-8 sm:h-10 px-2 sm:px-4 text-secondary hover:text-primary",
                     currentPage === 1
                       ? "pointer-events-none opacity-50"
-                      : "cursor-pointer"
+                      : "cursor-pointer",
                   )}
                 />
               </PaginationItem>
@@ -219,7 +219,7 @@ const CustomTable = <T extends Record<string, any>>({
                       className={cn(
                         "cursor-pointer text-xs sm:text-sm h-8 sm:h-10 w-8 sm:w-10 text-secondary hover:text-primary",
                         currentPage === page &&
-                          "bg-custom-red text-white hover:bg-custom-red/80 hover:text-white border-custom-red"
+                          "bg-custom-red text-white hover:bg-custom-red/80 hover:text-white border-custom-red",
                       )}
                     >
                       {page}
@@ -244,7 +244,7 @@ const CustomTable = <T extends Record<string, any>>({
                     "text-xs sm:text-sm h-8 sm:h-10 px-2 sm:px-4 text-secondary hover:text-primary",
                     currentPage === totalPages
                       ? "pointer-events-none opacity-50"
-                      : "cursor-pointer"
+                      : "cursor-pointer",
                   )}
                 />
               </PaginationItem>
