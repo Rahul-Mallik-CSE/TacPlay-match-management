@@ -12,6 +12,7 @@ import {
   SheetFooter,
 } from "@/components/ui/sheet";
 import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface SessionInfoSheetProps {
   open: boolean;
@@ -34,7 +35,7 @@ const SessionInfoSheet: React.FC<SessionInfoSheetProps> = ({
           <div className="flex items-center justify-between">
             <button
               onClick={() => onOpenChange(false)}
-              className="p-1 hover:bg-white/5 rounded-lg transition-colors"
+              className="cursor-pointer p-1 hover:bg-white/5 rounded-lg transition-colors"
             >
               <ArrowLeft className="w-5 h-5 text-primary" />
             </button>
@@ -42,7 +43,7 @@ const SessionInfoSheet: React.FC<SessionInfoSheetProps> = ({
               Open
             </span>
           </div>
-          <SheetTitle className="text-2xl font-bold text-primary mt-3">
+          <SheetTitle className="text-xl font-bold text-primary ">
             Session Information&apos;s
           </SheetTitle>
           <SheetDescription className="text-sm text-secondary">
@@ -50,13 +51,13 @@ const SessionInfoSheet: React.FC<SessionInfoSheetProps> = ({
           </SheetDescription>
         </SheetHeader>
 
-        <div className="px-5 pb-5 space-y-6 mt-4">
+        <div className="px-5  ">
           {/* Field Info */}
           <div>
             <h3 className="text-lg font-semibold text-primary mb-3">
               Field Info
             </h3>
-            <div className="space-y-3">
+            <div className="">
               <InfoRow label="Field ID" value="#CN 256" />
               <InfoRow label="Field Name" value="Imrul Hossain" />
               <InfoRow
@@ -72,7 +73,7 @@ const SessionInfoSheet: React.FC<SessionInfoSheetProps> = ({
             <h3 className="text-lg font-semibold text-primary mb-3">
               Session Info
             </h3>
-            <div className="space-y-3">
+            <div className="">
               <InfoRow label="Session ID" value="#CN 256" />
               <InfoRow
                 label="Match Type"
@@ -97,7 +98,7 @@ const SessionInfoSheet: React.FC<SessionInfoSheetProps> = ({
             <h3 className="text-lg font-semibold text-primary mb-3">
               Team Info
             </h3>
-            <div className="space-y-3">
+            <div className="">
               <InfoRow label="Team A Name" value="Red Bull Squad" />
               <InfoRow
                 label="Team A Score"
@@ -118,12 +119,10 @@ const SessionInfoSheet: React.FC<SessionInfoSheetProps> = ({
 
         {/* Footer Buttons */}
         <SheetFooter className="px-5 pb-5 pt-2 flex-row gap-3">
-          <button className="flex-1 py-2.5 rounded-lg border border-white/10 text-primary text-sm font-medium hover:bg-white/5 transition-colors">
+          <Button className="flex-1 py-2.5 bg-transparent rounded-lg border border-white/10 text-primary text-sm font-medium hover:bg-white/5 transition-colors">
             Match Cancel
-          </button>
-          <button className="flex-1 py-2.5 rounded-lg bg-custom-red text-white text-sm font-medium hover:bg-custom-red/80 transition-colors">
-            Match Start
-          </button>
+          </Button>
+          <Button className="flex-1">Match Start</Button>
         </SheetFooter>
       </SheetContent>
     </Sheet>

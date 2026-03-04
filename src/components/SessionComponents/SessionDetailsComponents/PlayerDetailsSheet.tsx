@@ -12,6 +12,7 @@ import {
   SheetFooter,
 } from "@/components/ui/sheet";
 import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface PlayerDetailsSheetProps {
   open: boolean;
@@ -38,7 +39,7 @@ const PlayerDetailsSheet: React.FC<PlayerDetailsSheetProps> = ({
           <div className="flex items-center justify-between">
             <button
               onClick={() => onOpenChange(false)}
-              className="p-1 hover:bg-white/5 rounded-lg transition-colors"
+              className="cursor-pointer p-1 hover:bg-white/5 rounded-lg transition-colors"
             >
               <ArrowLeft className="w-5 h-5 text-primary" />
             </button>
@@ -46,7 +47,7 @@ const PlayerDetailsSheet: React.FC<PlayerDetailsSheetProps> = ({
               Check-In
             </span>
           </div>
-          <SheetTitle className="text-2xl font-bold text-primary mt-3">
+          <SheetTitle className="text-xl md:text-xl font-bold text-primary ">
             Player Details &amp; Score Management
           </SheetTitle>
           <SheetDescription className="text-sm text-secondary">
@@ -54,13 +55,13 @@ const PlayerDetailsSheet: React.FC<PlayerDetailsSheetProps> = ({
           </SheetDescription>
         </SheetHeader>
 
-        <div className="px-5 pb-5 space-y-6 mt-4">
+        <div className="px-5 pb-5  ">
           {/* Player Info */}
           <div>
             <h3 className="text-lg font-semibold text-primary mb-3">
               Player Info
             </h3>
-            <div className="space-y-3">
+            <div className="">
               <InfoRow label="Team name" value="Green Snack Squad" />
               <InfoRow label="Player ID" value="#CN 256" />
               <InfoRow label="Player Name" value={playerName} />
@@ -74,7 +75,7 @@ const PlayerDetailsSheet: React.FC<PlayerDetailsSheetProps> = ({
             <h3 className="text-lg font-semibold text-primary mb-3">
               Booking Info
             </h3>
-            <div className="space-y-3">
+            <div className="">
               <InfoRow label="Booking ID" value="#CNH 565" />
               <InfoRow label="Transaction ID" value="#CNH 565" />
               <InfoRow label="Amount" value="$25.25" />
@@ -105,7 +106,7 @@ const PlayerDetailsSheet: React.FC<PlayerDetailsSheetProps> = ({
             <h3 className="text-lg font-semibold text-primary mb-3">
               Score Management
             </h3>
-            <div className="space-y-2">
+            <div className="">
               <label className="text-sm text-secondary">Match Score</label>
               <input
                 type="number"
@@ -119,10 +120,10 @@ const PlayerDetailsSheet: React.FC<PlayerDetailsSheetProps> = ({
         </div>
 
         {/* Footer */}
-        <SheetFooter className="px-5 pb-5 pt-2 justify-center">
-          <button className="w-full max-w-xs py-2.5 rounded-lg bg-custom-red text-white text-sm font-medium hover:bg-custom-red/80 transition-colors">
+        <SheetFooter className="px-5 pb-5 pt-2 flex justify-center">
+          <Button className=" py-2.5 rounded-lg bg-custom-red text-white text-sm font-medium hover:bg-custom-red/80 transition-colors">
             Score Submit
-          </button>
+          </Button>
         </SheetFooter>
       </SheetContent>
     </Sheet>
