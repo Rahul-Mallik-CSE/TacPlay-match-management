@@ -115,7 +115,7 @@ const EarningTable = () => {
             className="w-full pl-9 pr-4 py-2 rounded-lg bg-muted border border-white/10 text-sm text-primary placeholder:text-secondary focus:outline-none focus:ring-1 focus:ring-custom-yellow/50"
           />
         </div>
-        <div className="flex items-center gap-2">
+        {/* <div className="flex items-center gap-2">
           <button className="flex items-center gap-2 px-4 py-2 rounded-lg border border-white/10 text-sm text-secondary hover:bg-white/5 transition-colors">
             <SlidersHorizontal className="w-4 h-4" />
             Filter
@@ -124,7 +124,7 @@ const EarningTable = () => {
             <ArrowUpDown className="w-4 h-4" />
             Sort by
           </button>
-        </div>
+        </div> */}
       </div>
 
       {/* Table */}

@@ -162,10 +162,10 @@ const SessionTable: React.FC = () => {
             />
           </div>
           {/* Filter */}
-          <button className="flex items-center gap-2 bg-muted border border-white/10 rounded-lg px-4 py-2 text-sm text-secondary hover:text-primary transition-colors">
+          {/* <button className="flex items-center gap-2 bg-muted border border-white/10 rounded-lg px-4 py-2 text-sm text-secondary hover:text-primary transition-colors">
             <SlidersHorizontal className="w-4 h-4" />
             <span className="hidden sm:inline">Filter</span>
-          </button>
+          </button> */}
         </div>
 
         {/* Create New Session */}
