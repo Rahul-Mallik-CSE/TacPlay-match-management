@@ -127,7 +127,7 @@ export default function DashboardSidebar() {
                     alt="Logo"
                     width={150}
                     height={150}
-                    className="w-40 h-auto"
+                    className="w-40 h-10 object-contain"
                     priority
                   />
                 </div>
