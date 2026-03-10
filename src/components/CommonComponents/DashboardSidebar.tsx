@@ -126,7 +126,7 @@ export default function DashboardSidebar() {
                     src="/Tacplay-logo-2.png"
                     alt="Logo"
                     width={120}
-                    height={40}
+                    height={120}
                     className="w-40 h-10"
                     priority
                   />
