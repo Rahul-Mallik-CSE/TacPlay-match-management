@@ -121,7 +121,7 @@ export default function DashboardSidebar() {
               {isCollapsed ? (
                 <Image src="/logo.png" alt="Logo" width={40} height={40} />
               ) : (
-                <div className="mt-2 flex items-center gap-2  ">
+                <div className="mt-2 flex items-center gap-2 h-12 ">
                   <Image
                     src="/Tacplay-logo-2.png"
                     alt="Logo"
