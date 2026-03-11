@@ -58,11 +58,10 @@ const EarningTable = () => {
     const isPayPal = method.toLowerCase() === "paypal";
     return (
       <span
-        className={`px-2.5 py-0.5 text-xs font-medium rounded-md border ${
-          isPayPal
-            ? "bg-blue-500/20 text-blue-400 border-blue-500/30"
-            : "bg-purple-500/20 text-purple-400 border-purple-500/30"
-        }`}
+        className={`px-2.5 py-0.5 text-xs font-medium rounded-md border ${isPayPal
+          ? "bg-blue-500/20 text-blue-400 border-blue-500/30"
+          : "bg-purple-500/20 text-purple-400 border-purple-500/30"
+          }`}
       >
         {method}
       </span>
@@ -77,7 +76,7 @@ const EarningTable = () => {
     { header: "Player Name", accessor: "playerName" as keyof TransactionData },
     { header: "Session ID", accessor: "sessionId" as keyof TransactionData },
     {
-      header: "Service Type",
+      header: "Match Type",
       accessor: (row: TransactionData) => serviceTypeDot(row.serviceType),
     },
     { header: "Date", accessor: "date" as keyof TransactionData },

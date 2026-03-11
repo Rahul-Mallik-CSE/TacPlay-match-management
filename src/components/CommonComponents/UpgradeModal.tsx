@@ -40,7 +40,7 @@ const plans = [
     price: "€59",
     period: "/ 6 month",
     description: "Unlock ranked hosting and deeper match insights.",
-    buttonLabel: "Upgrade to Silver",
+    buttonLabel: "Bronze to Silver",
     buttonVariant: "red" as const,
     features: [
       "Everything in Bronze",
@@ -65,7 +65,7 @@ const plans = [
     price: "€139",
     period: "Per year",
     description: "Full control, unlimited sessions, complete analytics.",
-    buttonLabel: "Go Gold",
+    buttonLabel: "Silver to Gold",
     buttonVariant: "outline" as const,
     features: [
       "Everything in Silver",
