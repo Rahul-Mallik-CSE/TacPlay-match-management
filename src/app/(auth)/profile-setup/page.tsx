@@ -59,14 +59,15 @@ const ProfileSetupPage = () => {
     <div className="flex min-h-screen w-full bg-root-bg">
       {/* Left sidebar - stepper */}
       <aside className="hidden md:flex w-72 lg:w-80 flex-col border-r border-white/5 bg-card/50 p-6">
-        {/* Logo */}
-        <div className="mb-10">
+        <div className="h-6 flex items-center justify-center">
+          {/* Logo */}
           <Image
-            src="/Tacplay-logo.png"
+            src="/Tacplay-logo-2.png"
             alt="TacPlay"
-            width={120}
-            height={40}
-            className="object-contain"
+            width={200}
+            height={200}
+            className="object-contain h-12 "
+            priority
           />
         </div>
 

@@ -49,11 +49,11 @@ const ArenaManagementPage = () => {
               </div>
             </div>
 
-            {/* Pro Badge */}
+            {/* Pro Badge  that will be changed bassed on the package... silver-silver/ bronz- free / gold-gold*/}
             <div className="pb-1">
               <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-custom-red text-white text-xs sm:text-sm font-semibold">
                 <Crown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                Pro
+                Silver
               </div>
             </div>
           </div>
