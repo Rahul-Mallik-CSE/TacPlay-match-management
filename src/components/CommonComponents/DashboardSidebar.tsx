@@ -195,7 +195,7 @@ export default function DashboardSidebar() {
                 </div>
                 <div>
                   <p className="text-primary text-sm font-semibold leading-snug mb-0.5">
-                    Upgrade to Premium for more Features
+                    Upgrade to Silver for more Features
                   </p>
                   <Button
                     onClick={() => setIsUpgradeModalOpen(true)}
