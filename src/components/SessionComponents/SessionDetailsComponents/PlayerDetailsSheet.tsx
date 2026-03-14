@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/sheet";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface PlayerDetailsSheetProps {
   open: boolean;
@@ -25,7 +26,7 @@ const PlayerDetailsSheet: React.FC<PlayerDetailsSheetProps> = ({
   onOpenChange,
   playerName = "Elon Rektler",
 }) => {
-  const [matchScore, setMatchScore] = useState("50");
+  const [matchStatus, setMatchStatus] = useState("Win");
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -106,15 +107,21 @@ const PlayerDetailsSheet: React.FC<PlayerDetailsSheetProps> = ({
             <h3 className="text-lg font-semibold text-primary mb-3">
               Score Management
             </h3>
-            <div className="">
-              <label className="text-sm text-secondary">Match Score</label>
-              <input
-                type="number"
-                value={matchScore}
-                onChange={(e) => setMatchScore(e.target.value)}
-                className="w-full bg-muted border border-white/10 rounded-lg px-4 py-2.5 text-sm text-primary outline-none focus:border-custom-red/50 transition-colors"
-                placeholder="Enter score"
-              />
+            <div className="bg-[#0c0a0c] border border-white/5 rounded-2xl p-1.5 flex items-center">
+              {["Win", "Loss", "Draw"].map((status) => (
+                <button
+                  key={status}
+                  onClick={() => setMatchStatus(status)}
+                  className={cn(
+                    "flex-1 py-2 cursor-pointer text-sm font-semibold rounded-xl transition-all duration-200",
+                    matchStatus === status
+                      ? "bg-[#e2b83b] text-black shadow-md"
+                      : "text-secondary hover:text-white",
+                  )}
+                >
+                  {status}
+                </button>
+              ))}
             </div>
           </div>
         </div>
