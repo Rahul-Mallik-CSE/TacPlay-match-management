@@ -40,7 +40,7 @@ const plans = [
     price: "€59",
     period: "/ per month",
     description: "Unlock ranked hosting and deeper match insights.",
-    buttonLabel: "Bronze to Silver",
+    buttonLabel: "Upgrade to Silver",
     buttonVariant: "red" as const,
     features: [
       "Everything in Bronze",
@@ -64,7 +64,7 @@ const plans = [
     price: "€139",
     period: "/ per month",
     description: "Full control, unlimited sessions, complete analytics.",
-    buttonLabel: "Silver to Gold",
+    buttonLabel: "Upgrade to Gold",
     buttonVariant: "outline" as const,
     features: [
       "Everything in Silver",
@@ -161,7 +161,7 @@ export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
                 {/* Button */}
                 <button
                   className={cn(
-                    "w-full py-2.5 rounded-xl text-sm font-semibold transition-all mb-5",
+                    "w-full cur-pointer py-2.5 rounded-xl text-sm font-semibold transition-all mb-5",
                     plan.buttonVariant === "red"
                       ? "bg-linear-to-r from-[#980009] via-[#C00069] to-[#980009] text-white shadow-[0_0_12px_rgba(192,0,105,0.4)] hover:opacity-90"
                       : "bg-transparent border border-[#525273] text-white hover:border-white",
