@@ -2,7 +2,7 @@
 
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { ArrowLeft, Download } from "lucide-react";
 import {
   Sheet,
@@ -13,6 +13,15 @@ import {
   SheetFooter,
 } from "@/components/ui/sheet";
 import { useGetEarningDetailsQuery } from "@/redux/features/earnings/earningsAPI";
+import type { TransactionDetailsResponse } from "@/types/EarningTypes";
+import {
+  Document,
+  Page,
+  StyleSheet,
+  Text,
+  View,
+  pdf,
+} from "@react-pdf/renderer";
 
 interface TransactionDetailsSheetProps {
   open: boolean;
@@ -25,6 +34,7 @@ const TransactionDetailsSheet: React.FC<TransactionDetailsSheetProps> = ({
   onOpenChange,
   transactionId,
 }) => {
+  const [isDownloading, setIsDownloading] = useState(false);
   const { data, isLoading, isFetching, isError } = useGetEarningDetailsQuery(
     transactionId as number,
     {
@@ -33,6 +43,27 @@ const TransactionDetailsSheet: React.FC<TransactionDetailsSheetProps> = ({
   );
 
   const details = data?.data.transaction_details;
+
+  const handleDownload = async () => {
+    if (!details || !details.actions.can_download || isDownloading) return;
+
+    setIsDownloading(true);
+
+    try {
+      const blob = await pdf(
+        <TransactionDetailsPdfDocument details={details} />,
+      ).toBlob();
+
+      const objectUrl = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = objectUrl;
+      anchor.download = `${details.payment_info.display_transaction_id.replace(/[^a-zA-Z0-9_-]+/g, "-")}.pdf`;
+      anchor.click();
+      URL.revokeObjectURL(objectUrl);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   if (!open) return null;
 
@@ -156,11 +187,14 @@ const TransactionDetailsSheet: React.FC<TransactionDetailsSheetProps> = ({
             {details?.actions.cancel_button_text ?? "Cancel"}
           </button>
           <button
-            disabled={!details?.actions.can_download}
+            onClick={handleDownload}
+            disabled={!details?.actions.can_download || isDownloading}
             className="cursor-pointer flex-1 py-2.5 rounded-lg bg-custom-red text-white text-sm font-medium hover:bg-custom-red/80 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Download className="w-4 h-4" />
-            {details?.actions.download_button_text ?? "Download & Print"}
+            {isDownloading
+              ? "Generating PDF..."
+              : (details?.actions.download_button_text ?? "Download & Print")}
           </button>
         </SheetFooter>
       </SheetContent>
@@ -195,5 +229,124 @@ const PaymentBadge = ({ method }: { method: string }) => {
     </span>
   );
 };
+
+const pdfStyles = StyleSheet.create({
+  page: {
+    padding: 28,
+    fontSize: 11,
+    fontFamily: "Helvetica",
+    color: "#111827",
+    backgroundColor: "#ffffff",
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 700,
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 10,
+    color: "#6b7280",
+    marginBottom: 16,
+  },
+  section: {
+    marginBottom: 14,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    borderRadius: 8,
+  },
+  sectionTitle: {
+    fontSize: 13,
+    fontWeight: 700,
+    marginBottom: 8,
+  },
+  row: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 10,
+    paddingVertical: 3,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f3f4f6",
+  },
+  label: {
+    width: "42%",
+    color: "#6b7280",
+  },
+  value: {
+    width: "58%",
+    textAlign: "right",
+  },
+  footer: {
+    marginTop: 16,
+    fontSize: 9,
+    color: "#6b7280",
+    textAlign: "center",
+  },
+});
+
+const Row = ({ label, value }: { label: string; value: React.ReactNode }) => (
+  <View style={pdfStyles.row}>
+    <Text style={pdfStyles.label}>{label}</Text>
+    <Text style={pdfStyles.value}>{String(value)}</Text>
+  </View>
+);
+
+const TransactionDetailsPdfDocument = ({
+  details,
+}: {
+  details: TransactionDetailsResponse["data"]["transaction_details"];
+}) => (
+  <Document>
+    <Page size="A4" style={pdfStyles.page}>
+      <Text style={pdfStyles.title}>{details.title}</Text>
+      <Text style={pdfStyles.subtitle}>{details.subtitle}</Text>
+
+      <View style={pdfStyles.section}>
+        <Text style={pdfStyles.sectionTitle}>Player Info</Text>
+        <Row label="Player ID" value={details.player_info.display_player_id} />
+        <Row label="Player Name" value={details.player_info.player_name} />
+        <Row label="Email" value={details.player_info.email} />
+        <Row
+          label="Booking ID"
+          value={details.player_info.display_booking_id}
+        />
+        <Row
+          label="Session ID"
+          value={details.player_info.display_session_id}
+        />
+      </View>
+
+      <View style={pdfStyles.section}>
+        <Text style={pdfStyles.sectionTitle}>Payment Info</Text>
+        <Row
+          label="Transaction ID"
+          value={details.payment_info.display_transaction_id}
+        />
+        <Row label="Amount" value={details.payment_info.amount_display} />
+        <Row
+          label="Platform Fee"
+          value={details.payment_info.platform_fee_display}
+        />
+        <Row
+          label="Net Profit"
+          value={details.payment_info.net_profit_display}
+        />
+        <Row
+          label="Payment Method"
+          value={details.payment_info.payment_method_display}
+        />
+        <Row
+          label="Date & Time"
+          value={details.payment_info.date_time_display}
+        />
+        <Row label="Payment Status" value={details.status_display} />
+      </View>
+
+      <Text style={pdfStyles.footer}>
+        Generated from TacPlay earnings transaction details
+      </Text>
+    </Page>
+  </Document>
+);
 
 export default TransactionDetailsSheet;

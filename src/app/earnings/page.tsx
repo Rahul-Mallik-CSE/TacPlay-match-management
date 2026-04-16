@@ -1,6 +1,5 @@
 /** @format */
 
-import React from "react";
 import EarningTable from "@/components/EarningComponents/EarningTable";
 
 const EarningsPage = () => {
