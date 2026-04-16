@@ -1,6 +1,6 @@
 /** @format */
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Table,
   TableBody,
@@ -30,22 +30,54 @@ interface CustomTableProps<T> {
   }[];
   onAction?: (row: T) => void;
   itemsPerPage?: number;
+  serverPagination?: boolean;
+  currentPage?: number;
+  totalPages?: number;
+  onPageChange?: (page: number) => void;
+  onItemsPerPageChange?: (itemsPerPage: number) => void;
   title?: string;
   additionalCount?: number;
 }
 
-const CustomTable = <T extends Record<string, any>>({
+const CustomTable = <T extends Record<string, unknown>>({
   data,
   columns,
   onAction,
   itemsPerPage = 10,
+  serverPagination = false,
+  currentPage: controlledCurrentPage,
+  totalPages: controlledTotalPages,
+  onPageChange,
+  onItemsPerPageChange,
+  additionalCount,
 }: CustomTableProps<T>) => {
-  const [currentPage, setCurrentPage] = useState(1);
+  const [internalPage, setInternalPage] = useState(1);
+  const [internalItemsPerPage, setInternalItemsPerPage] =
+    useState(itemsPerPage);
 
-  const totalPages = Math.ceil(data.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentData = data.slice(startIndex, endIndex);
+  useEffect(() => {
+    setInternalItemsPerPage(itemsPerPage);
+  }, [itemsPerPage]);
+
+  useEffect(() => {
+    if (!serverPagination) {
+      setInternalPage(1);
+    }
+  }, [data, serverPagination]);
+
+  const currentPage = controlledCurrentPage ?? internalPage;
+  const pageSize = serverPagination ? itemsPerPage : internalItemsPerPage;
+  const totalPages = serverPagination
+    ? (controlledTotalPages ?? 1)
+    : Math.ceil(data.length / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const currentData = serverPagination
+    ? data
+    : data.slice(startIndex, startIndex + pageSize);
+  const endIndex = startIndex + currentData.length;
+  const totalEntries = serverPagination
+    ? (additionalCount ?? data.length)
+    : data.length;
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -92,7 +124,12 @@ const CustomTable = <T extends Record<string, any>>({
 
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
+      if (serverPagination) {
+        onPageChange?.(page);
+      } else {
+        setInternalPage(page);
+        onPageChange?.(page);
+      }
     }
   };
 
@@ -188,10 +225,10 @@ const CustomTable = <T extends Record<string, any>>({
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-between px-2">
+      <div className="flex items-center justify-between px-2 gap-3 flex-wrap">
         <p className="text-xs text-secondary">
-          Showing {startIndex + 1} to {Math.min(endIndex, data.length)} of{" "}
-          {data.length} entries
+          Showing {totalEntries === 0 ? 0 : startIndex + 1} to{" "}
+          {Math.min(endIndex, totalEntries)} of {totalEntries} entries
         </p>
         <div className="flex items-center gap-2">
           <Pagination>
@@ -253,7 +290,18 @@ const CustomTable = <T extends Record<string, any>>({
 
           <select
             className="bg-muted border border-white/10 text-primary text-xs rounded-md px-2 py-1.5 outline-none"
-            defaultValue={itemsPerPage}
+            value={pageSize}
+            onChange={(event) => {
+              const nextItemsPerPage = Number(event.target.value);
+
+              if (serverPagination) {
+                onItemsPerPageChange?.(nextItemsPerPage);
+              } else {
+                setInternalItemsPerPage(nextItemsPerPage);
+                setInternalPage(1);
+                onItemsPerPageChange?.(nextItemsPerPage);
+              }
+            }}
           >
             <option value={10}>Show 10</option>
             <option value={25}>Show 25</option>

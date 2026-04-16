@@ -4,6 +4,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import baseAPI from "@/redux/api/baseAPI";
 import authReducer from "@/redux/features/auth/authSlice";
 import dashboardReducer from "@/redux/features/dashboard/dashboardSlice";
+import earningsReducer from "@/redux/features/earnings/earningsSlice";
 import settingsReducer from "@/redux/features/settings/settingsSlice";
 
 export const store = configureStore({
@@ -11,6 +12,7 @@ export const store = configureStore({
     [baseAPI.reducerPath]: baseAPI.reducer,
     auth: authReducer,
     dashboard: dashboardReducer,
+    earnings: earningsReducer,
     settings: settingsReducer,
   },
   middleware: (getDefaultMiddleware) =>

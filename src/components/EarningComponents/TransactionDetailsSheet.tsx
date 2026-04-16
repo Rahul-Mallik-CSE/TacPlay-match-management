@@ -12,29 +12,29 @@ import {
   SheetDescription,
   SheetFooter,
 } from "@/components/ui/sheet";
-
-interface TransactionData {
-  transactionId: string;
-  playerName: string;
-  sessionId: string;
-  serviceType: string;
-  date: string;
-  amount: string;
-  paymentMethod: string;
-}
+import { useGetEarningDetailsQuery } from "@/redux/features/earnings/earningsAPI";
 
 interface TransactionDetailsSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  transaction: TransactionData | null;
+  transactionId: number | null;
 }
 
 const TransactionDetailsSheet: React.FC<TransactionDetailsSheetProps> = ({
   open,
   onOpenChange,
-  transaction,
+  transactionId,
 }) => {
-  if (!transaction) return null;
+  const { data, isLoading, isFetching, isError } = useGetEarningDetailsQuery(
+    transactionId as number,
+    {
+      skip: !open || transactionId === null,
+    },
+  );
+
+  const details = data?.data.transaction_details;
+
+  if (!open) return null;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -43,7 +43,6 @@ const TransactionDetailsSheet: React.FC<TransactionDetailsSheetProps> = ({
         showCloseButton={false}
         className="w-full sm:max-w-lg bg-card border-l border-white/10 overflow-y-auto p-0"
       >
-        {/* Header */}
         <SheetHeader className="p-5 pb-0">
           <div className="flex items-center">
             <button
@@ -53,88 +52,115 @@ const TransactionDetailsSheet: React.FC<TransactionDetailsSheetProps> = ({
               <ArrowLeft className="w-5 h-5 text-primary" />
             </button>
           </div>
-          <SheetTitle className="text-xl font-bold text-primary ">
-            Transaction Details
+          <SheetTitle className="text-xl font-bold text-primary">
+            {details?.title ?? "Transaction Details"}
           </SheetTitle>
           <SheetDescription className="text-sm text-secondary">
-            View complete transaction and payment information.
+            {details?.subtitle ??
+              "View complete transaction and payment information."}
           </SheetDescription>
         </SheetHeader>
 
-        <div className="px-5 pb-5 ">
-          {/* Player Info */}
-          <div>
-            <h3 className="text-lg font-semibold text-primary mb-3">
-              Player Info
-            </h3>
-            <div className="">
-              <InfoRow label="Player ID" value="#CN 256" />
-              <InfoRow label="Player Name" value={transaction.playerName} />
-              <InfoRow label="Email" value="name@gmail.com" />
-              <InfoRow label="Contact Number" value="+26 256 2564" />
+        <div className="px-5 pb-5">
+          {isLoading || isFetching ? (
+            <div className="py-6 text-sm text-muted-foreground">
+              Loading transaction details...
             </div>
-          </div>
+          ) : null}
 
-          {/* Payment Info */}
-          <div>
-            <h3 className="text-lg font-semibold text-primary mb-3">
-              Payment Info
-            </h3>
-            <div className="">
-              <InfoRow
-                label="Transaction ID"
-                value={transaction.transactionId}
-              />
-              <InfoRow label="Session ID" value={transaction.sessionId} />
-              <InfoRow
-                label="Service Type"
-                value={
-                  <span className="flex items-center gap-2">
-                    <span
-                      className={`w-2 h-2 rounded-full ${transaction.serviceType === "Ranked" ? "bg-custom-red" : "bg-custom-yellow"}`}
-                    />
-                    {transaction.serviceType}
-                  </span>
-                }
-              />
-              <InfoRow label="Amount" value={transaction.amount} />
-              <InfoRow
-                label="Platform Fee"
-                value={
-                  <span>
-                    <span className="text-secondary">(Free User) </span>$05.25
-                  </span>
-                }
-              />
-              <InfoRow label="Net Profit" value="$24.05" />
-              <InfoRow
-                label="Payment Method"
-                value={<PaymentBadge method={transaction.paymentMethod} />}
-              />
-              <InfoRow label="Date & Time" value="02:30 AM, 25 jan 2026" />
-              <InfoRow
-                label="Payment Status"
-                value={
-                  <span className="px-3 py-0.5 text-xs font-medium rounded-md border bg-teal-500/20 text-teal-400 border-teal-500/30">
-                    Paid
-                  </span>
-                }
-              />
+          {isError ? (
+            <div className="py-6 text-sm text-destructive">
+              Failed to load transaction details.
             </div>
-          </div>
+          ) : null}
+
+          {details ? (
+            <>
+              <div>
+                <h3 className="text-lg font-semibold text-primary mb-3">
+                  Player Info
+                </h3>
+                <div>
+                  <InfoRow
+                    label="Player ID"
+                    value={details.player_info.display_player_id}
+                  />
+                  <InfoRow
+                    label="Player Name"
+                    value={details.player_info.player_name}
+                  />
+                  <InfoRow label="Email" value={details.player_info.email} />
+                  <InfoRow
+                    label="Booking ID"
+                    value={details.player_info.display_booking_id}
+                  />
+                  <InfoRow
+                    label="Session ID"
+                    value={details.player_info.display_session_id}
+                  />
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <h3 className="text-lg font-semibold text-primary mb-3">
+                  Payment Info
+                </h3>
+                <div>
+                  <InfoRow
+                    label="Transaction ID"
+                    value={details.payment_info.display_transaction_id}
+                  />
+                  <InfoRow
+                    label="Amount"
+                    value={details.payment_info.amount_display}
+                  />
+                  <InfoRow
+                    label="Platform Fee"
+                    value={details.payment_info.platform_fee_display}
+                  />
+                  <InfoRow
+                    label="Net Profit"
+                    value={details.payment_info.net_profit_display}
+                  />
+                  <InfoRow
+                    label="Payment Method"
+                    value={
+                      <PaymentBadge
+                        method={details.payment_info.payment_method_display}
+                      />
+                    }
+                  />
+                  <InfoRow
+                    label="Date & Time"
+                    value={details.payment_info.date_time_display}
+                  />
+                  <InfoRow
+                    label="Payment Status"
+                    value={
+                      <span className="px-3 py-0.5 text-xs font-medium rounded-md border bg-teal-500/20 text-teal-400 border-teal-500/30">
+                        {details.status_display}
+                      </span>
+                    }
+                  />
+                </div>
+              </div>
+            </>
+          ) : null}
         </div>
 
-        {/* Footer */}
         <SheetFooter className="px-5 pb-5 pt-2 flex-row gap-3">
           <button
             onClick={() => onOpenChange(false)}
             className="cursor-pointer flex-1 py-2.5 rounded-lg border border-white/10 text-primary text-sm font-medium hover:bg-white/5 transition-colors"
           >
-            Cancel
+            {details?.actions.cancel_button_text ?? "Cancel"}
           </button>
-          <button className="cursor-pointer flex-1 py-2.5 rounded-lg bg-custom-red text-white text-sm font-medium hover:bg-custom-red/80 transition-colors flex items-center justify-center gap-2">
+          <button
+            disabled={!details?.actions.can_download}
+            className="cursor-pointer flex-1 py-2.5 rounded-lg bg-custom-red text-white text-sm font-medium hover:bg-custom-red/80 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             <Download className="w-4 h-4" />
-            Download & Print
+            {details?.actions.download_button_text ?? "Download & Print"}
           </button>
         </SheetFooter>
       </SheetContent>
@@ -156,13 +182,13 @@ const InfoRow = ({
 );
 
 const PaymentBadge = ({ method }: { method: string }) => {
-  const isPayPal = method.toLowerCase() === "paypal";
+  const isStripe = method.toLowerCase().includes("stripe");
   return (
     <span
       className={`px-2.5 py-0.5 text-xs font-medium rounded-md border ${
-        isPayPal
-          ? "bg-blue-500/20 text-blue-400 border-blue-500/30"
-          : "bg-purple-500/20 text-purple-400 border-purple-500/30"
+        isStripe
+          ? "bg-purple-500/20 text-purple-400 border-purple-500/30"
+          : "bg-blue-500/20 text-blue-400 border-blue-500/30"
       }`}
     >
       {method}

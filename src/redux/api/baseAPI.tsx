@@ -99,7 +99,7 @@ const baseQueryWithReauth: BaseQueryFn<
 const baseAPI = createApi({
   reducerPath: "api",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["Auth", "Arena", "Dashboard"],
+  tagTypes: ["Auth", "Arena", "Dashboard", "Earnings"],
   endpoints: () => ({}),
 });
 
