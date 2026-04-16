@@ -2,46 +2,43 @@
 
 "use client";
 
-import React, { useState } from "react";
-import { Search, SlidersHorizontal, ArrowUpDown } from "lucide-react";
+import React, { useMemo, useState } from "react";
+import { Search } from "lucide-react";
 import CustomTable from "../CommonComponents/CustomTable";
-import BookingDetailsSheet from "./BookingDetailsSheet";
-
-interface BookingData {
-  bookingId: string;
-  playerName: string;
-  sessionDate: string;
-  matchType: string;
-  paymentStatus: string;
-  checkInStatus: string;
-  status: string;
-}
-
-const sampleBookings: BookingData[] = Array.from({ length: 25 }, (_, i) => ({
-  bookingId: `#BRN 556${i}`,
-  playerName: "Imrul Hossain",
-  sessionDate: "25 jan 2026",
-  matchType: i % 2 === 0 ? "Ranked" : "Social",
-  paymentStatus: i % 3 === 0 ? "Pending" : "Paid",
-  checkInStatus: i % 4 === 0 ? "Pending" : "Checked-In",
-  status: i % 5 === 0 ? "Cancelled" : i % 3 === 0 ? "Pending" : "Open",
-}));
+import BookingDetailsSheet from "@/components/BookingListComponents/BookingDetailsSheet";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import {
+  setBookingListLimit,
+  setBookingListPage,
+} from "@/redux/features/bookingList/bookingListSlice";
+import { useGetBookingListQuery } from "@/redux/features/bookingList/bookingListAPI";
+import type { BookingListItem } from "@/types/BookingListTypes";
 
 const BookingListTable = () => {
+  const dispatch = useAppDispatch();
+  const page = useAppSelector((state) => state.bookingList.page);
+  const limit = useAppSelector((state) => state.bookingList.limit);
+
   const [search, setSearch] = useState("");
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [selectedBooking, setSelectedBooking] = useState<BookingData | null>(
+  const [selectedBookingId, setSelectedBookingId] = useState<number | null>(
     null,
   );
 
-  const filteredData = sampleBookings.filter(
-    (b) =>
-      b.playerName.toLowerCase().includes(search.toLowerCase()) ||
-      b.bookingId.toLowerCase().includes(search.toLowerCase()),
+  const queryArgs = useMemo(
+    () => ({ page, limit, search: search.trim() || undefined }),
+    [limit, page, search],
   );
 
+  const { data, isLoading, isFetching, isError } =
+    useGetBookingListQuery(queryArgs);
+
+  const rows = data?.data ?? [];
+  const totalPage = data?.meta.totalPage ?? 1;
+  const totalCount = data?.meta.total ?? rows.length;
+
   const matchTypeDot = (type: string) => {
-    const isRanked = type === "Ranked";
+    const isRanked = type.toLowerCase() === "ranked";
     return (
       <span className="flex items-center gap-2">
         <span
@@ -57,12 +54,14 @@ const BookingListTable = () => {
       paid: "bg-teal-500/20 text-teal-400 border border-teal-500/30",
       pending:
         "bg-custom-yellow/20 text-yellow-400 border border-custom-yellow/30",
-      "checked-in":
+      confirmed:
         "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30",
+      cancelled: "bg-custom-red/20 text-red-400 border border-custom-red/30",
     };
     const colors =
       colorMap[value.toLowerCase()] ||
       "bg-secondary/20 text-secondary border border-secondary/30";
+
     return (
       <span
         className={`px-2.5 py-0.5 text-xs font-medium rounded-md ${colors}`}
@@ -75,38 +74,40 @@ const BookingListTable = () => {
   const columns = [
     {
       header: "Booking ID",
-      accessor: (row: BookingData) => (
+      accessor: (row: BookingListItem) => (
         <span className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-custom-red" />
-          {row.bookingId}
+          {row.display_booking_id}
         </span>
       ),
     },
-    { header: "Player Name", accessor: "playerName" as keyof BookingData },
-    { header: "Session Date", accessor: "sessionDate" as keyof BookingData },
+    { header: "Player Name", accessor: "player_name" as keyof BookingListItem },
+    { header: "Session Date", accessor: "match_date" as keyof BookingListItem },
     {
       header: "Match Type",
-      accessor: (row: BookingData) => matchTypeDot(row.matchType),
+      accessor: (row: BookingListItem) => matchTypeDot(row.match_type),
     },
     {
       header: "Payment Status",
-      accessor: (row: BookingData) => statusBadge(row.paymentStatus),
+      accessor: (row: BookingListItem) => statusBadge(row.payment_status),
     },
     {
-      header: "Check-In Status",
-      accessor: (row: BookingData) => statusBadge(row.checkInStatus),
+      header: "Team",
+      accessor: "team_display" as keyof BookingListItem,
     },
-    { header: "Status", accessor: "status" as keyof BookingData },
+    {
+      header: "Status",
+      accessor: (row: BookingListItem) => statusBadge(row.status),
+    },
   ];
 
-  const handleAction = (row: BookingData) => {
-    setSelectedBooking(row);
+  const handleAction = (row: BookingListItem) => {
+    setSelectedBookingId(row.booking_id);
     setSheetOpen(true);
   };
 
   return (
     <div className="space-y-5">
-      {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-primary">Booking List</h1>
         <p className="text-sm text-secondary mt-1">
@@ -114,7 +115,6 @@ const BookingListTable = () => {
         </p>
       </div>
 
-      {/* Toolbar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="relative w-full sm:w-72">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary" />
@@ -122,35 +122,42 @@ const BookingListTable = () => {
             type="text"
             placeholder="Search"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(event) => {
+              setSearch(event.target.value);
+              dispatch(setBookingListPage(1));
+            }}
             className="w-full pl-9 pr-4 py-2 rounded-lg bg-muted border border-white/10 text-sm text-primary placeholder:text-secondary focus:outline-none focus:ring-1 focus:ring-custom-yellow/50"
           />
         </div>
-        {/* <div className="flex items-center gap-2">
-          <button className="flex items-center gap-2 px-4 py-2 rounded-lg border border-white/10 text-sm text-secondary hover:bg-white/5 transition-colors">
-            <SlidersHorizontal className="w-4 h-4" />
-            Filter
-          </button>
-          <button className="flex items-center gap-2 px-4 py-2 rounded-lg border border-white/10 text-sm text-secondary hover:bg-white/5 transition-colors">
-            <ArrowUpDown className="w-4 h-4" />
-            Sort by
-          </button>
-        </div> */}
       </div>
 
-      {/* Table */}
+      {isLoading || isFetching ? (
+        <div className="text-sm text-muted-foreground">Loading bookings...</div>
+      ) : null}
+
+      {isError ? (
+        <div className="text-sm text-destructive">Failed to load bookings.</div>
+      ) : null}
+
       <CustomTable
-        data={filteredData}
+        data={rows}
         columns={columns}
         onAction={handleAction}
-        itemsPerPage={10}
+        itemsPerPage={limit}
+        serverPagination
+        currentPage={page}
+        totalPages={totalPage}
+        additionalCount={totalCount}
+        onPageChange={(nextPage) => dispatch(setBookingListPage(nextPage))}
+        onItemsPerPageChange={(nextLimit) =>
+          dispatch(setBookingListLimit(nextLimit))
+        }
       />
 
-      {/* Booking Details Sheet */}
       <BookingDetailsSheet
         open={sheetOpen}
         onOpenChange={setSheetOpen}
-        booking={selectedBooking}
+        bookingId={selectedBookingId}
       />
     </div>
   );

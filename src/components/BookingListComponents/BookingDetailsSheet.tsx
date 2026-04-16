@@ -20,31 +20,29 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-
-interface BookingData {
-  bookingId: string;
-  playerName: string;
-  sessionDate: string;
-  matchType: string;
-  paymentStatus: string;
-  checkInStatus: string;
-  status: string;
-}
+import { useGetBookingDetailsQuery } from "@/redux/features/bookingList/bookingListAPI";
 
 interface BookingDetailsSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  booking: BookingData | null;
+  bookingId: number | null;
 }
 
 const BookingDetailsSheet: React.FC<BookingDetailsSheetProps> = ({
   open,
   onOpenChange,
-  booking,
+  bookingId,
 }) => {
   const [confirmOpen, setConfirmOpen] = useState(false);
 
-  if (!booking) return null;
+  const { data, isLoading, isFetching, isError } = useGetBookingDetailsQuery(
+    bookingId as number,
+    { skip: !open || bookingId === null },
+  );
+
+  const details = data?.data;
+
+  if (!open) return null;
 
   return (
     <>
@@ -54,7 +52,6 @@ const BookingDetailsSheet: React.FC<BookingDetailsSheetProps> = ({
           showCloseButton={false}
           className="w-full sm:max-w-lg bg-card border-l border-white/10 overflow-y-auto p-0"
         >
-          {/* Header */}
           <SheetHeader className="p-5 pb-0">
             <div className="flex items-center justify-between">
               <button
@@ -63,7 +60,7 @@ const BookingDetailsSheet: React.FC<BookingDetailsSheetProps> = ({
               >
                 <ArrowLeft className="w-5 h-5 text-primary" />
               </button>
-              <StatusBadge status={booking.status} />
+              <StatusBadge status={details?.booking.status ?? "pending"} />
             </div>
             <SheetTitle className="text-xl font-bold text-primary ">
               Booking Details
@@ -74,70 +71,118 @@ const BookingDetailsSheet: React.FC<BookingDetailsSheetProps> = ({
           </SheetHeader>
 
           <div className="px-5 pb-5 ">
-            {/* Player Info */}
-            <div>
-              <h3 className="text-lg font-semibold text-primary mb-3">
-                Player Info
-              </h3>
-              <div className="">
-                <InfoRow label="Player ID" value="#CN 256" />
-                <InfoRow label="Player Name" value={booking.playerName} />
-                <InfoRow label="Email" value="name@gmail.com" />
-                <InfoRow label="Contact Number" value="+26 256 2564" />
+            {isLoading || isFetching ? (
+              <div className="py-6 text-sm text-muted-foreground">
+                Loading booking details...
               </div>
-            </div>
+            ) : null}
 
-            {/* Session Info */}
-            <div>
-              <h3 className="text-lg font-semibold text-primary mb-3">
-                Session Info
-              </h3>
-              <div className="">
-                <InfoRow label="Session ID" value="Imrul Hossain" />
-                <InfoRow label="Arena Name" value="Toffe Fun World" />
-                <InfoRow
-                  label="Match Type"
-                  value={
-                    <span className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-custom-red" />
-                      Ranked
-                    </span>
-                  }
-                />
-                <InfoRow label="Session Date" value="25 January, 2026" />
-                <InfoRow label="Time" value="02:30 AM to 03:30 PM" />
+            {isError ? (
+              <div className="py-6 text-sm text-destructive">
+                Failed to load booking details.
               </div>
-            </div>
+            ) : null}
 
-            {/* Payment Info */}
-            <div>
-              <h3 className="text-lg font-semibold text-primary mb-3">
-                Payment Info
-              </h3>
-              <div className="">
-                <InfoRow label="Booking ID" value={booking.bookingId} />
-                <InfoRow label="Transaction ID" value="#CNH 565" />
-                <InfoRow label="Amount" value="$25.25" />
-                <InfoRow
-                  label="Platform Fee"
-                  value={
-                    <span>
-                      <span className="text-secondary">(Free User) </span>$05.25
-                    </span>
-                  }
-                />
-                <InfoRow label="Net Profit" value="$24.05" />
-                <InfoRow label="Payment Method" value="PayPal" />
-                <InfoRow label="Date & Time" value="02:30 AM, 25 jan 2026" />
-                <InfoRow
-                  label="Payment Status"
-                  value={<StatusBadge status="Paid" />}
-                />
-              </div>
-            </div>
+            {details ? (
+              <>
+                <div>
+                  <h3 className="text-lg font-semibold text-primary mb-3">
+                    Player Info
+                  </h3>
+                  <div>
+                    <InfoRow
+                      label="Player ID"
+                      value={details.player.display_player_id}
+                    />
+                    <InfoRow
+                      label="Player Name"
+                      value={details.player.full_name}
+                    />
+                    <InfoRow label="Email" value={details.player.email} />
+                    <InfoRow
+                      label="Contact Number"
+                      value={details.player.contact_number ?? "-"}
+                    />
+                    <InfoRow label="Location" value={details.player.location} />
+                  </div>
+                </div>
+
+                <div className="mt-6">
+                  <h3 className="text-lg font-semibold text-primary mb-3">
+                    Session Info
+                  </h3>
+                  <div>
+                    <InfoRow
+                      label="Session ID"
+                      value={`#CH ${details.session.id}`}
+                    />
+                    <InfoRow
+                      label="Session Name"
+                      value={details.session.session_name}
+                    />
+                    <InfoRow
+                      label="Arena Name"
+                      value={details.session.field_name}
+                    />
+                    <InfoRow
+                      label="Match Type"
+                      value={
+                        <span className="flex items-center gap-2">
+                          <span
+                            className={`w-2 h-2 rounded-full ${details.session.match_type.toLowerCase() === "ranked" ? "bg-custom-red" : "bg-custom-yellow"}`}
+                          />
+                          {details.session.match_type}
+                        </span>
+                      }
+                    />
+                    <InfoRow
+                      label="Session Date"
+                      value={details.session.match_date}
+                    />
+                    <InfoRow
+                      label="Time"
+                      value={`${details.session.start_time} to ${details.session.end_time}`}
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-6">
+                  <h3 className="text-lg font-semibold text-primary mb-3">
+                    Payment Info
+                  </h3>
+                  <div>
+                    <InfoRow
+                      label="Booking ID"
+                      value={details.booking.display_booking_id}
+                    />
+                    <InfoRow
+                      label="Transaction Ref"
+                      value={details.booking.payment_reference}
+                    />
+                    <InfoRow
+                      label="Amount"
+                      value={details.payment.total_amount_display}
+                    />
+                    <InfoRow
+                      label="Platform Fee"
+                      value={details.payment.commission_amount}
+                    />
+                    <InfoRow
+                      label="Payment Method"
+                      value={details.payment.payment_method}
+                    />
+                    <InfoRow
+                      label="Payment Status"
+                      value={
+                        <StatusBadge status={details.booking.payment_status} />
+                      }
+                    />
+                  </div>
+                </div>
+              </>
+            ) : null}
           </div>
 
-          {/* Footer */}
           <SheetFooter className="px-5 pb-5 pt-2 justify-center">
             <button
               onClick={() => setConfirmOpen(true)}
@@ -149,7 +194,6 @@ const BookingDetailsSheet: React.FC<BookingDetailsSheetProps> = ({
         </SheetContent>
       </Sheet>
 
-      {/* Check-In Confirmation Dialog */}
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <DialogContent
           showCloseButton={false}
@@ -207,6 +251,7 @@ const StatusBadge = ({ status }: { status: string }) => {
     paid: "bg-teal-500/20 text-teal-400 border-teal-500/30",
     pending: "bg-custom-yellow/20 text-yellow-400 border-custom-yellow/30",
     open: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
+    confirmed: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
     cancelled: "bg-custom-red/20 text-red-400 border-custom-red/30",
   };
   const colors =
