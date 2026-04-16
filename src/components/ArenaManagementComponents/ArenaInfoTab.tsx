@@ -24,6 +24,8 @@ import {
   useEditArenaInfoMutation,
   useGetArenaInfoQuery,
 } from "@/redux/features/arenaManagement/arenaManagementAPI";
+import { getErrorMessage, getSuccessMessage } from "@/lib/auth";
+import { toast } from "react-toastify";
 
 type ArenaInfoForm = {
   field_name: string;
@@ -150,7 +152,7 @@ const ArenaInfoTab = () => {
     if (!draft) return;
 
     try {
-      await editArenaInfo({
+      const response = await editArenaInfo({
         field_name: draft.field_name,
         description: draft.description,
         country: draft.country,
@@ -158,9 +160,14 @@ const ArenaInfoTab = () => {
         full_address: draft.full_address,
       }).unwrap();
 
+      toast.success(
+        getSuccessMessage(response, "Arena info updated successfully."),
+      );
+
       setDraft(null);
       setIsEditing(false);
-    } catch {
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to update arena info."));
       // Keep edit mode open so user can retry.
     }
   };

@@ -14,6 +14,8 @@ import {
   useEditPackageManagementMutation,
   useGetPackageManagementQuery,
 } from "@/redux/features/arenaManagement/arenaManagementAPI";
+import { getErrorMessage, getSuccessMessage } from "@/lib/auth";
+import { toast } from "react-toastify";
 
 type PackageForm = {
   id?: number;
@@ -108,7 +110,7 @@ const PackageManagementTab = () => {
     if (!draftPackages) return;
 
     try {
-      await editPackageManagement({
+      const response = await editPackageManagement({
         packages: draftPackages.map((item) => ({
           package_name: item.package_name,
           description: item.description,
@@ -118,9 +120,16 @@ const PackageManagementTab = () => {
         })),
       }).unwrap();
 
+      toast.success(
+        getSuccessMessage(response, "Package management updated successfully."),
+      );
+
       setDraftPackages(null);
       setIsEditing(false);
-    } catch {
+    } catch (error) {
+      toast.error(
+        getErrorMessage(error, "Failed to update package management."),
+      );
       // Keep edit mode open so user can retry.
     }
   };

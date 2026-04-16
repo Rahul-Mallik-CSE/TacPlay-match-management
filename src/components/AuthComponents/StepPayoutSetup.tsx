@@ -30,10 +30,8 @@ type StepPayoutSetupProps = {
 };
 
 const BUSINESS_TYPES: { value: string; label: string }[] = [
+  { value: "individual", label: "Individual" },
   { value: "registered_company", label: "Registered Company" },
-  { value: "individual", label: "Individual / Sole Trader" },
-  { value: "partnership", label: "Partnership" },
-  { value: "llc", label: "LLC" },
 ];
 
 const StepPayoutSetup = ({ value, onChange }: StepPayoutSetupProps) => {
@@ -91,9 +89,7 @@ const StepPayoutSetup = ({ value, onChange }: StepPayoutSetupProps) => {
             placeholder="+44 7700 900123"
             className="bg-input/30 border-white/10 text-primary h-11"
             value={value.contact_phone_number}
-            onChange={(e) =>
-              onChange({ contact_phone_number: e.target.value })
-            }
+            onChange={(e) => onChange({ contact_phone_number: e.target.value })}
           />
         </div>
       </div>

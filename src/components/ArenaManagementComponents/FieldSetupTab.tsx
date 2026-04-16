@@ -18,6 +18,8 @@ import {
   useEditFieldSetupMutation,
   useGetFieldSetupQuery,
 } from "@/redux/features/arenaManagement/arenaManagementAPI";
+import { getErrorMessage, getSuccessMessage } from "@/lib/auth";
+import { toast } from "react-toastify";
 
 type FieldSetupForm = {
   minimum_players_per_team: number;
@@ -70,7 +72,7 @@ const FieldSetupTab = () => {
     if (!draft) return;
 
     try {
-      await editFieldSetup({
+      const response = await editFieldSetup({
         minimum_players_per_team: draft.minimum_players_per_team,
         maximum_players_per_team: draft.maximum_players_per_team,
         minimum_players_per_session: draft.minimum_players_per_session,
@@ -81,9 +83,14 @@ const FieldSetupTab = () => {
         allow_ranked_matches: draft.allow_ranked_matches,
       }).unwrap();
 
+      toast.success(
+        getSuccessMessage(response, "Field setup updated successfully."),
+      );
+
       setDraft(null);
       setIsEditing(false);
-    } catch {
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to update field setup."));
       // Keep edit mode open so user can retry.
     }
   };

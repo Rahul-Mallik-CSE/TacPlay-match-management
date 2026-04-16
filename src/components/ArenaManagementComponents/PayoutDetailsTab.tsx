@@ -17,6 +17,8 @@ import {
   useEditPayoutDetailsMutation,
   useGetPayoutDetailsQuery,
 } from "@/redux/features/arenaManagement/arenaManagementAPI";
+import { getErrorMessage, getSuccessMessage } from "@/lib/auth";
+import { toast } from "react-toastify";
 
 type PayoutForm = {
   business_name: string;
@@ -68,7 +70,7 @@ const PayoutDetailsTab = () => {
     if (!draft) return;
 
     try {
-      await editPayoutDetails({
+      const response = await editPayoutDetails({
         business_name: draft.business_name,
         business_type: draft.business_type,
         contact_phone_number: draft.contact_phone_number,
@@ -79,9 +81,14 @@ const PayoutDetailsTab = () => {
         swift_bic_code: draft.swift_bic_code,
       }).unwrap();
 
+      toast.success(
+        getSuccessMessage(response, "Payout details updated successfully."),
+      );
+
       setDraft(null);
       setIsEditing(false);
-    } catch {
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to update payout details."));
       // Keep edit mode open so user can retry.
     }
   };
@@ -188,12 +195,10 @@ const PayoutDetailsTab = () => {
               <SelectValue placeholder="Select business type" />
             </SelectTrigger>
             <SelectContent className="bg-card border-white/10">
+              <SelectItem value="individual">Individual</SelectItem>
               <SelectItem value="registered_company">
                 Registered Company
               </SelectItem>
-              <SelectItem value="sole_trader">Sole Trader</SelectItem>
-              <SelectItem value="partnership">Partnership</SelectItem>
-              <SelectItem value="llc">LLC</SelectItem>
             </SelectContent>
           </Select>
         </div>
