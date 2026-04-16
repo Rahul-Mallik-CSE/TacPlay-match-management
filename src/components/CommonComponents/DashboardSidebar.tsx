@@ -8,7 +8,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarTrigger,
   useSidebar,
 } from "../ui/sidebar";
 
@@ -16,14 +15,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { usePathname, useRouter } from "next/navigation";
-import {
-  LayoutGrid,
-  Briefcase,
-  Calendar,
-  Bell,
-  Settings,
-  Crown,
-} from "lucide-react";
+import { LayoutGrid, Settings, Crown } from "lucide-react";
 import { Button } from "../ui/button";
 import LogoutModal from "./LogOutModal";
 import UpgradeModal from "./UpgradeModal";
@@ -31,13 +23,24 @@ import { CiTrophy } from "react-icons/ci";
 import { IoDocumentTextOutline } from "react-icons/io5";
 import { BiMoneyWithdraw } from "react-icons/bi";
 import { GrUserManager } from "react-icons/gr";
+import { useLogoutMutation } from "@/redux/features/auth/authAPI";
+import { useAppDispatch } from "@/redux/hooks";
+import { clearAuthSession } from "@/redux/features/auth/authSlice";
+import {
+  clearAuthTokens,
+  getErrorMessage,
+  getSuccessMessage,
+} from "@/lib/auth";
+import { toast } from "react-toastify";
 
 export default function DashboardSidebar() {
   const { state } = useSidebar();
   const pathname = usePathname();
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+  const [logout] = useLogoutMutation();
 
   const isCollapsed = state === "collapsed";
 
@@ -74,12 +77,20 @@ export default function DashboardSidebar() {
     },
   ];
 
-  const handleLogout = () => {
-    router.push("/sign-in");
-    // Add your logout logic here (e.g., clear tokens, redirect, etc.)
-    console.log("Logging out...");
-    setIsLogoutModalOpen(false);
-    // Example: router.push('/login');
+  const handleLogout = async () => {
+    try {
+      const response = await logout().unwrap();
+      toast.success(getSuccessMessage(response, "Logged out successfully"));
+    } catch (error) {
+      toast.error(
+        getErrorMessage(error, "Logout failed, clearing local session"),
+      );
+    } finally {
+      clearAuthTokens();
+      dispatch(clearAuthSession());
+      setIsLogoutModalOpen(false);
+      router.push("/sign-in");
+    }
   };
 
   if (

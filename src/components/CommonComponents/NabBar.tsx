@@ -21,10 +21,11 @@ const NavBar = () => {
   const router = useRouter();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
-  const handleLogout = () => {
-    console.log("Logging out...");
+  const handleLogout = async () => {
     setIsLogoutModalOpen(false);
+    await fetch("/api/auth/session", { method: "DELETE" });
     router.push("/sign-in");
+    router.refresh();
   };
   if (
     pathname == "/sign-in" ||

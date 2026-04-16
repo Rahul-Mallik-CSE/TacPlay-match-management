@@ -2,19 +2,31 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { Suspense, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import AuthBanner from "@/components/AuthComponents/AuthBanner";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
-const SignInPage = () => {
+function safeReturnPath(from: string | null): string | null {
+  if (!from) return null;
+  if (!from.startsWith("/") || from.startsWith("//")) return null;
+  if (from.startsWith("/api")) return null;
+  return from;
+}
+
+const SignInPageInner = () => {
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
-  const handleSignIn = () => {
-    router.push("/");
+  const handleSignIn = async () => {
+    const res = await fetch("/api/auth/session", { method: "POST" });
+    if (!res.ok) return;
+    const from = safeReturnPath(searchParams.get("from"));
+    router.push(from ?? "/");
+    router.refresh();
   };
 
   return (
@@ -141,4 +153,18 @@ const SignInPage = () => {
   );
 };
 
-export default SignInPage;
+export default function SignInPage() {
+  return (
+    <Suspense
+      fallback={
+        <AuthBanner>
+          <div className="flex min-h-[240px] items-center justify-center text-sm text-muted-foreground">
+            Loading…
+          </div>
+        </AuthBanner>
+      }
+    >
+      <SignInPageInner />
+    </Suspense>
+  );
+}

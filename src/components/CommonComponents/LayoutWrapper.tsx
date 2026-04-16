@@ -7,15 +7,7 @@ import { usePathname } from "next/navigation";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import DashboardSidebar from "@/components/CommonComponents/DashboardSidebar";
 import NavBar from "@/components/CommonComponents/NabBar";
-
-const authRoutes = [
-  "/sign-in",
-  "/sign-up",
-  "/forgot-pass",
-  "/verify-otp",
-  "/reset-pass",
-  "/profile-setup",
-];
+import { isPublicAuthPath } from "@/lib/public-auth-paths";
 
 export default function LayoutWrapper({
   children,
@@ -23,7 +15,7 @@ export default function LayoutWrapper({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const isAuthPage = authRoutes.some((route) => pathname.startsWith(route));
+  const isAuthPage = isPublicAuthPath(pathname);
 
   if (isAuthPage) {
     return <div className="bg-root-bg min-h-screen">{children}</div>;

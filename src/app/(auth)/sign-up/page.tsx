@@ -8,11 +8,64 @@ import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import AuthBanner from "@/components/AuthComponents/AuthBanner";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
+import { useSignUpFieldOwnerMutation } from "@/redux/features/auth/authAPI";
+import { useAppDispatch } from "@/redux/hooks";
+import { setPendingVerification } from "@/redux/features/auth/authSlice";
+import { getErrorMessage, getSuccessMessage } from "@/lib/auth";
 
 const SignUpPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreed, setAgreed] = useState(false);
+  const [ownerName, setOwnerName] = useState("");
+  const [businessEmail, setBusinessEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+  const [signUpFieldOwner, { isLoading }] = useSignUpFieldOwnerMutation();
+
+  const handleSignUp = async () => {
+    if (!ownerName || !businessEmail || !password || !confirmPassword) {
+      toast.error("Please fill all required fields");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
+    if (!agreed) {
+      toast.error("Please accept terms and conditions");
+      return;
+    }
+
+    try {
+      const response = await signUpFieldOwner({
+        owner_name: ownerName,
+        business_email: businessEmail,
+        password,
+        confirm_password: confirmPassword,
+      }).unwrap();
+
+      dispatch(
+        setPendingVerification({
+          email: response.data.business_email,
+          purpose: "signup",
+        }),
+      );
+
+      toast.success(getSuccessMessage(response, "OTP sent to your email"));
+      router.push(
+        `/verify-otp?purpose=signup&email=${encodeURIComponent(response.data.business_email)}`,
+      );
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to sign up"));
+    }
+  };
 
   return (
     <AuthBanner>
@@ -48,6 +101,8 @@ const SignUpPage = () => {
             <input
               type="text"
               placeholder="Enter restaurant owner name"
+              value={ownerName}
+              onChange={(event) => setOwnerName(event.target.value)}
               className="w-full px-4 py-2.5 rounded-lg bg-input/30 border border-white/10 text-sm text-primary placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-custom-yellow/50 transition-colors"
             />
           </div>
@@ -60,6 +115,8 @@ const SignUpPage = () => {
             <input
               type="email"
               placeholder="Enter your email address"
+              value={businessEmail}
+              onChange={(event) => setBusinessEmail(event.target.value)}
               className="w-full px-4 py-2.5 rounded-lg bg-input/30 border border-white/10 text-sm text-primary placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-custom-yellow/50 transition-colors"
             />
           </div>
@@ -71,6 +128,8 @@ const SignUpPage = () => {
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Create a secure password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
                 className="w-full px-4 py-2.5 pr-11 rounded-lg bg-input/30 border border-white/10 text-sm text-primary placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-custom-yellow/50 transition-colors"
               />
               <button
@@ -96,6 +155,8 @@ const SignUpPage = () => {
               <input
                 type={showConfirmPassword ? "text" : "password"}
                 placeholder="Re-enter your password"
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
                 className="w-full px-4 py-2.5 pr-11 rounded-lg bg-input/30 border border-white/10 text-sm text-primary placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-custom-yellow/50 transition-colors"
               />
               <button
@@ -125,8 +186,12 @@ const SignUpPage = () => {
           </div>
 
           {/* Sign Up Button */}
-          <button className="w-full py-3 rounded-lg bg-custom-red text-white text-sm font-semibold hover:bg-custom-red/90 transition-colors border-2 border-border">
-            Sign Up
+          <button
+            onClick={handleSignUp}
+            disabled={isLoading}
+            className="w-full py-3 rounded-lg bg-custom-red text-white text-sm font-semibold hover:bg-custom-red/90 transition-colors border-2 border-border"
+          >
+            {isLoading ? "Signing Up..." : "Sign Up"}
           </button>
 
           {/* Divider */}
