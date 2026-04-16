@@ -2,6 +2,20 @@
 
 import baseAPI from "@/redux/api/baseAPI";
 
+export type ArenaUserInfo = {
+  full_name: string;
+  email: string;
+  profile_image: string | null;
+};
+
+export type ArenaApiResponse<T> = {
+  success: boolean;
+  message: string;
+  meta: Record<string, unknown>;
+  data: T;
+  requestId: string;
+};
+
 export type ArenaCountry = {
   id: number;
   name: string;
@@ -125,8 +139,183 @@ export type Step4PayoutBusinessBody = {
   swift_bic_code: string;
 };
 
+export type ArenaInfoResponseData = {
+  id: number;
+  field_name: string;
+  description: string;
+  country: ArenaCountry;
+  city: ArenaCity;
+  full_address: string;
+  media: ArenaMedia[];
+  user_info?: ArenaUserInfo;
+};
+
+export type ArenaInfoEditInput = {
+  field_name: string;
+  description: string;
+  country: string;
+  city: string;
+  full_address: string;
+  image?: File | null;
+};
+
+export type FieldSetupResponseData = {
+  minimum_players_per_team: number;
+  maximum_players_per_team: number;
+  minimum_players_per_session: number;
+  maximum_players_per_session: number;
+  default_session_duration: number;
+  duration_unit: string;
+  base_price_per_player: string;
+  allow_social_matches: boolean;
+  allow_ranked_matches: boolean;
+  user_info?: ArenaUserInfo;
+};
+
+export type FieldSetupEditBody = {
+  minimum_players_per_team: number;
+  maximum_players_per_team: number;
+  minimum_players_per_session: number;
+  maximum_players_per_session: number;
+  default_session_duration: number;
+  base_price_per_player: string;
+  allow_social_matches: boolean;
+  allow_ranked_matches: boolean;
+};
+
+export type PackageManagementResponseData = {
+  packages: ArenaPackage[];
+  user_info?: ArenaUserInfo;
+};
+
+export type PackageManagementEditBody = {
+  packages: Array<{
+    package_name: string;
+    description: string;
+    package_fee: string;
+    include_items: string[];
+    is_active: boolean;
+  }>;
+};
+
+export type PayoutDetailsResponseData = {
+  business_name: string;
+  business_type: string;
+  contact_phone_number: string;
+  bank_account_holder_name: string;
+  bank_name: string;
+  account_number: string;
+  iban_routing_number: string;
+  swift_bic_code: string;
+  user_info?: ArenaUserInfo;
+};
+
+export type PayoutDetailsEditBody = {
+  business_name: string;
+  business_type: string;
+  contact_phone_number: string;
+  bank_account_holder_name: string;
+  bank_name: string;
+  account_number: string;
+  iban_routing_number: string;
+  swift_bic_code: string;
+};
+
 const arenaManagementAPI = baseAPI.injectEndpoints({
   endpoints: (builder) => ({
+    getArenaInfo: builder.query<ArenaApiResponse<ArenaInfoResponseData>, void>({
+      query: () => ({
+        url: "/api/arena/arena-info/",
+        method: "GET",
+      }),
+      providesTags: ["Arena"],
+    }),
+    editArenaInfo: builder.mutation<
+      ArenaApiResponse<ArenaInfoResponseData>,
+      ArenaInfoEditInput
+    >({
+      query: (body) => {
+        const formData = new FormData();
+        formData.append("field_name", body.field_name);
+        formData.append("description", body.description);
+        formData.append("country", body.country);
+        formData.append("city", body.city);
+        formData.append("full_address", body.full_address);
+        if (body.image) {
+          formData.append("image", body.image);
+        }
+
+        return {
+          url: "/api/arena/arena-info/edit/",
+          method: "PATCH",
+          body: formData,
+        };
+      },
+      invalidatesTags: ["Arena"],
+    }),
+    getFieldSetup: builder.query<
+      ArenaApiResponse<FieldSetupResponseData>,
+      void
+    >({
+      query: () => ({
+        url: "/api/arena/field-setup/",
+        method: "GET",
+      }),
+      providesTags: ["Arena"],
+    }),
+    editFieldSetup: builder.mutation<
+      ArenaApiResponse<FieldSetupResponseData>,
+      FieldSetupEditBody
+    >({
+      query: (body) => ({
+        url: "/api/arena/field-setup/edit/",
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: ["Arena"],
+    }),
+    getPackageManagement: builder.query<
+      ArenaApiResponse<PackageManagementResponseData>,
+      void
+    >({
+      query: () => ({
+        url: "/api/arena/package-management/",
+        method: "GET",
+      }),
+      providesTags: ["Arena"],
+    }),
+    editPackageManagement: builder.mutation<
+      ArenaApiResponse<PackageManagementResponseData>,
+      PackageManagementEditBody
+    >({
+      query: (body) => ({
+        url: "/api/arena/package-management/edit/",
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: ["Arena"],
+    }),
+    getPayoutDetails: builder.query<
+      ArenaApiResponse<PayoutDetailsResponseData>,
+      void
+    >({
+      query: () => ({
+        url: "/api/arena/payout-details/",
+        method: "GET",
+      }),
+      providesTags: ["Arena"],
+    }),
+    editPayoutDetails: builder.mutation<
+      ArenaApiResponse<PayoutDetailsResponseData>,
+      PayoutDetailsEditBody
+    >({
+      query: (body) => ({
+        url: "/api/arena/payout-details/edit/",
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: ["Arena"],
+    }),
     submitStep1ArenaInfo: builder.mutation<
       CompletionFlowResponse,
       Step1ArenaInfoInput
@@ -182,6 +371,14 @@ const arenaManagementAPI = baseAPI.injectEndpoints({
 });
 
 export const {
+  useGetArenaInfoQuery,
+  useEditArenaInfoMutation,
+  useGetFieldSetupQuery,
+  useEditFieldSetupMutation,
+  useGetPackageManagementQuery,
+  useEditPackageManagementMutation,
+  useGetPayoutDetailsQuery,
+  useEditPayoutDetailsMutation,
   useSubmitStep1ArenaInfoMutation,
   useSubmitStep2MatchRequirementsMutation,
   useSubmitStep3PackageManagementMutation,

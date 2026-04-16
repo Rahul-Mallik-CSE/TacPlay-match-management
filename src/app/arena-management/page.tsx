@@ -3,27 +3,48 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
 import { Crown, Shield } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import BillingsTab from "@/components/ArenaManagementComponents/BillingsTab";
+import { useGetArenaInfoQuery } from "@/redux/features/arenaManagement/arenaManagementAPI";
 import ArenaInfoTab from "@/components/ArenaManagementComponents/ArenaInfoTab";
 import FieldSetupTab from "@/components/ArenaManagementComponents/FieldSetupTab";
 import PackageManagementTab from "@/components/ArenaManagementComponents/PackageManagementTab";
 import PayoutDetailsTab from "@/components/ArenaManagementComponents/PayoutDetailsTab";
-import BillingsTab from "@/components/ArenaManagementComponents/BillingsTab";
+import { toAbsoluteMediaUrl } from "@/lib/utils";
 
 const ArenaManagementPage = () => {
+  const { data } = useGetArenaInfoQuery();
+
+  const arenaInfo = data?.data;
+  const userInfo = arenaInfo?.user_info;
+  const fullName = userInfo?.full_name || "Arena Owner";
+  const email = userInfo?.email || "";
+
+  const initials =
+    fullName
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase())
+      .join("") || "AO";
+
+  const coverMedia =
+    arenaInfo?.media?.find((media) => media.is_primary) ??
+    arenaInfo?.media?.[0];
+  const coverImageUrl = toAbsoluteMediaUrl(coverMedia?.file_url);
+  const profileImageUrl = toAbsoluteMediaUrl(userInfo?.profile_image);
+
   return (
-    <div className="w-full p-3 md:p-4">
+    <div className="w-full pt-3 pb-6 md:pb-12 md:pt-4">
       <div className="max-w-625 mx-auto space-y-4 md:space-y-6">
         {/* Cover Image */}
         <div className="relative w-full h-32 sm:h-40 md:h-48 lg:h-56 overflow-hidden rounded-t-xl">
-          <Image
-            src="/profile-cover.png"
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={coverImageUrl || "/profile-cover.png"}
             alt="Arena Cover"
-            fill
-            className="object-cover"
-            priority
+            className="w-full h-full object-cover"
           />
         </div>
 
@@ -33,18 +54,27 @@ const ArenaManagementPage = () => {
           <div className="relative -mt-10 sm:-mt-12 md:-mt-14 mb-3 flex items-end justify-between">
             <div className="flex items-end gap-4">
               <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full border-4 border-card bg-muted overflow-hidden shrink-0">
-                <div className="w-full h-full bg-linear-to-br from-custom-red/40 to-custom-yellow/40 flex items-center justify-center">
-                  <span className="text-2xl sm:text-3xl font-bold text-primary">
-                    KH
-                  </span>
-                </div>
+                {profileImageUrl ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={profileImageUrl}
+                    alt={`${fullName} profile`}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-linear-to-br from-custom-red/40 to-custom-yellow/40 flex items-center justify-center">
+                    <span className="text-2xl sm:text-3xl font-bold text-primary">
+                      {initials}
+                    </span>
+                  </div>
+                )}
               </div>
               <div className="pb-1">
                 <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-primary">
-                  Kamrul Hossain
+                  {fullName}
                 </h1>
                 <p className="text-xs sm:text-sm text-muted-foreground">
-                  khk22008@gmail.com
+                  {email}
                 </p>
               </div>
             </div>

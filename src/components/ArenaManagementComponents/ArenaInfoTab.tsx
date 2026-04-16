@@ -2,8 +2,8 @@
 
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { Pen } from "lucide-react";
+import React, { useEffect, useMemo, useState } from "react";
+import { Loader2, Pen, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,12 +20,76 @@ import {
   type cityProps,
   type countryProps,
 } from "country-state-city-nextjs";
+import {
+  useEditArenaInfoMutation,
+  useGetArenaInfoQuery,
+} from "@/redux/features/arenaManagement/arenaManagementAPI";
+
+type ArenaInfoForm = {
+  field_name: string;
+  description: string;
+  country: string;
+  city: string;
+  full_address: string;
+};
 
 const ArenaInfoTab = () => {
+  const { data, isLoading, isFetching, isError } = useGetArenaInfoQuery();
+  const [editArenaInfo, { isLoading: isSaving }] = useEditArenaInfoMutation();
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [draft, setDraft] = useState<ArenaInfoForm | null>(null);
+
   const [countries, setCountries] = useState<countryProps[]>([]);
   const [cities, setCities] = useState<cityProps[]>([]);
-  const [selectedCountry, setSelectedCountry] = useState("United Kingdom");
-  const [selectedCity, setSelectedCity] = useState("Birmingham");
+
+  const currentArena = data?.data;
+
+  const baseForm = useMemo<ArenaInfoForm>(
+    () => ({
+      field_name: currentArena?.field_name ?? "",
+      description: currentArena?.description ?? "",
+      country: currentArena?.country?.name ?? "",
+      city: currentArena?.city?.name ?? "",
+      full_address: currentArena?.full_address ?? "",
+    }),
+    [currentArena],
+  );
+
+  const form = isEditing ? (draft ?? baseForm) : baseForm;
+
+  const normalizedCountries = useMemo(() => {
+    if (!form.country) return countries;
+    const hasCurrent = countries.some(
+      (country) => country.text === form.country,
+    );
+    if (hasCurrent) return countries;
+
+    return [
+      ...countries,
+      {
+        id: -1,
+        text: form.country,
+        code: "",
+      },
+    ];
+  }, [countries, form.country]);
+
+  const normalizedCities = useMemo(() => {
+    if (!form.city) return cities;
+    const hasCurrent = cities.some((city) => city.text === form.city);
+    if (hasCurrent) return cities;
+
+    return [
+      ...cities,
+      {
+        id: -1,
+        text: form.city,
+        id_state: -1,
+        id_country: -1,
+      },
+    ];
+  }, [cities, form.city]);
 
   useEffect(() => {
     let active = true;
@@ -33,16 +97,7 @@ const ArenaInfoTab = () => {
     const loadCountries = async () => {
       const data = (await getDataCountrys()) as countryProps[];
       if (!active) return;
-
-      const parsedCountries = Array.isArray(data) ? data : [];
-      setCountries(parsedCountries);
-      setSelectedCountry((previousCountry) => {
-        const selectedExists = parsedCountries.some(
-          (country) => country.text === previousCountry,
-        );
-        if (selectedExists) return previousCountry;
-        return parsedCountries[0]?.text ?? "";
-      });
+      setCountries(Array.isArray(data) ? data : []);
     };
 
     loadCountries();
@@ -56,29 +111,21 @@ const ArenaInfoTab = () => {
     let active = true;
 
     const loadCities = async () => {
-      const country = countries.find((item) => item.text === selectedCountry);
-      if (!country) {
+      const selectedCountry = countries.find(
+        (item) => item.text === form.country,
+      );
+      if (!selectedCountry) {
         setCities([]);
-        setSelectedCity("");
         return;
       }
 
       const data = (await getDataCitysByCountry({
-        id: country.id,
-        text: country.text,
+        id: selectedCountry.id,
+        text: selectedCountry.text,
       })) as cityProps[];
 
       if (!active) return;
-      const parsedCities = Array.isArray(data) ? data : [];
-      setCities(parsedCities);
-
-      setSelectedCity((previousCity) => {
-        const cityExists = parsedCities.some(
-          (city) => city.text === previousCity,
-        );
-        if (cityExists) return previousCity;
-        return parsedCities[0]?.text ?? "";
-      });
+      setCities(Array.isArray(data) ? data : []);
     };
 
     loadCities();
@@ -86,11 +133,57 @@ const ArenaInfoTab = () => {
     return () => {
       active = false;
     };
-  }, [countries, selectedCountry]);
+  }, [countries, form.country]);
+
+  const handleToggleEdit = () => {
+    if (isEditing) {
+      setDraft(null);
+      setIsEditing(false);
+      return;
+    }
+
+    setDraft(baseForm);
+    setIsEditing(true);
+  };
+
+  const handleSave = async () => {
+    if (!draft) return;
+
+    try {
+      await editArenaInfo({
+        field_name: draft.field_name,
+        description: draft.description,
+        country: draft.country,
+        city: draft.city,
+        full_address: draft.full_address,
+      }).unwrap();
+
+      setDraft(null);
+      setIsEditing(false);
+    } catch {
+      // Keep edit mode open so user can retry.
+    }
+  };
+
+  if (isLoading || isFetching) {
+    return (
+      <div className="py-10 flex items-center justify-center text-muted-foreground">
+        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+        Loading arena info...
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="py-10 text-sm text-destructive">
+        Failed to load arena info.
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-xl sm:text-2xl font-bold text-primary">
@@ -101,54 +194,103 @@ const ArenaInfoTab = () => {
             book sessions at your arena.
           </p>
         </div>
-        <Button
-          variant="default"
-          size="sm"
-          className="w-fit flex items-center gap-2"
-        >
-          <Pen className="w-4 h-4" />
-          Edit Information
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="default"
+            size="sm"
+            className="w-fit flex items-center gap-2"
+            onClick={handleToggleEdit}
+          >
+            <Pen className="w-4 h-4" />
+            {isEditing ? "Cancel Edit" : "Edit Information"}
+          </Button>
+          {isEditing && (
+            <Button
+              variant="default"
+              size="sm"
+              className="w-fit flex items-center gap-2"
+              onClick={handleSave}
+              disabled={isSaving}
+            >
+              {isSaving ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Save className="w-4 h-4" />
+              )}
+              Save
+            </Button>
+          )}
+        </div>
       </div>
 
-      {/* Form Fields */}
       <div className="space-y-5">
-        {/* Field / Arena Name */}
         <div className="space-y-2">
           <label className="text-sm font-medium text-primary">
             Field / Arena Name
           </label>
           <Input
-            placeholder="Toggle Fun Club"
-            defaultValue="Toggle Fun Club"
-            readOnly
+            placeholder="Enter arena name"
+            value={form.field_name}
+            onChange={(event) =>
+              setDraft((previous) =>
+                previous
+                  ? {
+                      ...previous,
+                      field_name: event.target.value,
+                    }
+                  : previous,
+              )
+            }
+            readOnly={!isEditing}
             className="bg-input/30 border-white/10 text-primary h-11"
           />
         </div>
 
-        {/* Description */}
         <div className="space-y-2">
           <label className="text-sm font-medium text-primary">
             Description
           </label>
           <Textarea
             placeholder="Describe your arena..."
-            defaultValue="A fully equipped outdoor paintball arena designed for competitive and social matches. The field features tactical obstacles, safety-controlled zones, and structured layouts suitable for team-based gameplay."
-            readOnly
-            className="bg-input/30 border-white/10 text-primary min-h-[100px]"
+            value={form.description}
+            onChange={(event) =>
+              setDraft((previous) =>
+                previous
+                  ? {
+                      ...previous,
+                      description: event.target.value,
+                    }
+                  : previous,
+              )
+            }
+            readOnly={!isEditing}
+            className="bg-input/30 border-white/10 text-primary min-h-25"
           />
         </div>
 
-        {/* Country & City */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className="text-sm font-medium text-primary">Country</label>
-            <Select value={selectedCountry} onValueChange={setSelectedCountry}>
+            <Select
+              value={form.country}
+              onValueChange={(value) =>
+                setDraft((previous) =>
+                  previous
+                    ? {
+                        ...previous,
+                        country: value,
+                        city: "",
+                      }
+                    : previous,
+                )
+              }
+              disabled={!isEditing}
+            >
               <SelectTrigger className="w-full bg-input/30 border-white/10 text-primary h-11">
                 <SelectValue placeholder="Select country" />
               </SelectTrigger>
               <SelectContent className="bg-card border-white/10">
-                {countries.map((country) => (
+                {normalizedCountries.map((country) => (
                   <SelectItem key={country.id} value={country.text}>
                     {country.text}
                   </SelectItem>
@@ -158,12 +300,25 @@ const ArenaInfoTab = () => {
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium text-primary">City</label>
-            <Select value={selectedCity} onValueChange={setSelectedCity}>
+            <Select
+              value={form.city}
+              onValueChange={(value) =>
+                setDraft((previous) =>
+                  previous
+                    ? {
+                        ...previous,
+                        city: value,
+                      }
+                    : previous,
+                )
+              }
+              disabled={!isEditing}
+            >
               <SelectTrigger className="w-full bg-input/30 border-white/10 text-primary h-11">
                 <SelectValue placeholder="Select city" />
               </SelectTrigger>
               <SelectContent className="bg-card border-white/10">
-                {cities.map((city) => (
+                {normalizedCities.map((city) => (
                   <SelectItem key={city.id} value={city.text}>
                     {city.text}
                   </SelectItem>
@@ -173,15 +328,24 @@ const ArenaInfoTab = () => {
           </div>
         </div>
 
-        {/* Full Address */}
         <div className="space-y-2">
           <label className="text-sm font-medium text-primary">
             Full Address
           </label>
           <Input
             placeholder="Enter your full address"
-            defaultValue="Flat 4B, 27 Maple Grove, Birmingham, West Midlands, United State"
-            readOnly
+            value={form.full_address}
+            onChange={(event) =>
+              setDraft((previous) =>
+                previous
+                  ? {
+                      ...previous,
+                      full_address: event.target.value,
+                    }
+                  : previous,
+              )
+            }
+            readOnly={!isEditing}
             className="bg-input/30 border-white/10 text-primary h-11"
           />
         </div>
