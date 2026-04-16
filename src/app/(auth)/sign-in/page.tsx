@@ -57,7 +57,7 @@ const SignInPageInner = () => {
       const returnTo =
         safeReturnPath(searchParams.get("from")) ??
         safeReturnPath(searchParams.get("redirect")) ??
-        "/";
+        "/profile-setup";
 
       router.push(returnTo);
       router.refresh();
@@ -90,11 +90,7 @@ const SignInPageInner = () => {
         </p>
 
         {/* Form */}
-        <form
-          className="w-full space-y-5"
-          onSubmit={handleSignIn}
-          noValidate
-        >
+        <form className="w-full space-y-5" onSubmit={handleSignIn} noValidate>
           {/* Business Email */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-primary">

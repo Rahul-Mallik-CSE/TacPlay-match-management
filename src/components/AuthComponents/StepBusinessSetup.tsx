@@ -13,10 +13,26 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const StepBusinessSetup = () => {
+export type MatchRulesStepForm = {
+  minimum_players_per_team: string;
+  maximum_players_per_team: string;
+  minimum_players_per_session: string;
+  maximum_players_per_session: string;
+  default_session_duration: string;
+  duration_unit: string;
+  base_price_per_player: string;
+  allow_social_matches: boolean;
+  allow_ranked_matches: boolean;
+};
+
+type StepBusinessSetupProps = {
+  value: MatchRulesStepForm;
+  onChange: (patch: Partial<MatchRulesStepForm>) => void;
+};
+
+const StepBusinessSetup = ({ value, onChange }: StepBusinessSetupProps) => {
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
         <h2 className="text-xl sm:text-2xl font-bold text-primary">
           Match Requirements &amp; Capacity
@@ -27,9 +43,7 @@ const StepBusinessSetup = () => {
         </p>
       </div>
 
-      {/* Form */}
       <div className="space-y-5">
-        {/* Min / Max Players Per Team */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className="text-sm font-medium text-primary">
@@ -37,8 +51,13 @@ const StepBusinessSetup = () => {
             </label>
             <Input
               type="number"
+              min={1}
               placeholder="e.g. 6"
               className="bg-input/30 border-white/10 text-primary h-11"
+              value={value.minimum_players_per_team}
+              onChange={(e) =>
+                onChange({ minimum_players_per_team: e.target.value })
+              }
             />
           </div>
           <div className="space-y-2">
@@ -47,13 +66,17 @@ const StepBusinessSetup = () => {
             </label>
             <Input
               type="number"
+              min={1}
               placeholder="e.g. 8"
               className="bg-input/30 border-white/10 text-primary h-11"
+              value={value.maximum_players_per_team}
+              onChange={(e) =>
+                onChange({ maximum_players_per_team: e.target.value })
+              }
             />
           </div>
         </div>
 
-        {/* Min / Max Players Per Session */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className="text-sm font-medium text-primary">
@@ -61,8 +84,13 @@ const StepBusinessSetup = () => {
             </label>
             <Input
               type="number"
+              min={1}
               placeholder="e.g. 16"
               className="bg-input/30 border-white/10 text-primary h-11"
+              value={value.minimum_players_per_session}
+              onChange={(e) =>
+                onChange({ minimum_players_per_session: e.target.value })
+              }
             />
           </div>
           <div className="space-y-2">
@@ -71,13 +99,17 @@ const StepBusinessSetup = () => {
             </label>
             <Input
               type="number"
+              min={1}
               placeholder="e.g. 16"
               className="bg-input/30 border-white/10 text-primary h-11"
+              value={value.maximum_players_per_session}
+              onChange={(e) =>
+                onChange({ maximum_players_per_session: e.target.value })
+              }
             />
           </div>
         </div>
 
-        {/* Default Session Duration */}
         <div className="space-y-2">
           <label className="text-sm font-medium text-primary">
             Default Session Duration
@@ -85,10 +117,18 @@ const StepBusinessSetup = () => {
           <div className="flex gap-3">
             <Input
               type="number"
+              min={1}
               placeholder="e.g. 50"
               className="bg-input/30 border-white/10 text-primary h-11 flex-1"
+              value={value.default_session_duration}
+              onChange={(e) =>
+                onChange({ default_session_duration: e.target.value })
+              }
             />
-            <Select defaultValue="minute">
+            <Select
+              value={value.duration_unit}
+              onValueChange={(v) => onChange({ duration_unit: v })}
+            >
               <SelectTrigger className="w-28 bg-input/30 border-white/10 text-primary h-11">
                 <SelectValue placeholder="Unit" />
               </SelectTrigger>
@@ -100,36 +140,49 @@ const StepBusinessSetup = () => {
           </div>
         </div>
 
-        {/* Base Price Per Player */}
         <div className="space-y-2">
           <label className="text-sm font-medium text-primary">
             Base Price Per Player
           </label>
           <Input
-            placeholder="$0.00"
+            placeholder="0.00"
             className="bg-input/30 border-white/10 text-primary h-11"
+            value={value.base_price_per_player}
+            onChange={(e) =>
+              onChange({ base_price_per_player: e.target.value })
+            }
           />
         </div>
 
-        {/* Allow Social Matches */}
         <div className="flex items-center justify-between py-3 border-t border-white/5">
           <label className="text-sm font-medium text-primary">
             Allow Social Matches
           </label>
           <div className="flex items-center gap-3">
-            <Switch className="data-[state=checked]:bg-custom-yellow" />
-            <span className="text-sm text-muted-foreground">Off</span>
+            <Switch
+              className="data-[state=checked]:bg-custom-yellow"
+              checked={value.allow_social_matches}
+              onCheckedChange={(v) => onChange({ allow_social_matches: v })}
+            />
+            <span className="text-sm text-muted-foreground">
+              {value.allow_social_matches ? "On" : "Off"}
+            </span>
           </div>
         </div>
 
-        {/* Allow Ranked Matches */}
         <div className="flex items-center justify-between py-3 border-t border-white/5">
           <label className="text-sm font-medium text-primary">
             Allow Ranked Matches
           </label>
           <div className="flex items-center gap-3">
-            <Switch className="data-[state=checked]:bg-custom-yellow" />
-            <span className="text-sm text-muted-foreground">Off</span>
+            <Switch
+              className="data-[state=checked]:bg-custom-yellow"
+              checked={value.allow_ranked_matches}
+              onCheckedChange={(v) => onChange({ allow_ranked_matches: v })}
+            />
+            <span className="text-sm text-muted-foreground">
+              {value.allow_ranked_matches ? "On" : "Off"}
+            </span>
           </div>
         </div>
       </div>
