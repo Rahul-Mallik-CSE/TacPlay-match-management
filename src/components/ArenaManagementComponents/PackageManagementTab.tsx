@@ -312,6 +312,9 @@ const PackageManagementTab = () => {
                 Package Fee
               </label>
               <Input
+                type="number"
+                inputMode="decimal"
+                step="0.01"
                 value={pkg.package_fee}
                 onChange={(event) =>
                   updatePackage(index, { package_fee: event.target.value })

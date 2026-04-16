@@ -35,7 +35,10 @@ const StepPackageManagement = ({
       </div>
 
       {value.map((pkg, index) => (
-        <div key={index} className="space-y-5 border-t border-white/5 pt-6 first:border-t-0 first:pt-0">
+        <div
+          key={index}
+          className="space-y-5 border-t border-white/5 pt-6 first:border-t-0 first:pt-0"
+        >
           <h3 className="text-lg font-bold text-primary">
             Package Type {index + 1}
           </h3>
@@ -62,9 +65,7 @@ const StepPackageManagement = ({
               placeholder="Describe this package..."
               className="bg-input/30 border-white/10 text-primary min-h-[100px]"
               value={pkg.description}
-              onChange={(e) =>
-                onChange(index, { description: e.target.value })
-              }
+              onChange={(e) => onChange(index, { description: e.target.value })}
             />
           </div>
 
@@ -73,12 +74,13 @@ const StepPackageManagement = ({
               Package Fee
             </label>
             <Input
+              type="number"
+              inputMode="decimal"
+              step="0.01"
               placeholder="0.00"
               className="bg-input/30 border-white/10 text-primary h-11"
               value={pkg.package_fee}
-              onChange={(e) =>
-                onChange(index, { package_fee: e.target.value })
-              }
+              onChange={(e) => onChange(index, { package_fee: e.target.value })}
             />
           </div>
 
