@@ -1,79 +1,147 @@
 /** @format */
 
+"use client";
+
 import {
   DollarSign,
   CalendarCheck,
   Gamepad2,
   Trophy,
   FileText,
-  CalendarRange,
 } from "lucide-react";
+import type { ReactNode } from "react";
 import StatsCard from "@/components/DashboardComponents/StatsCard";
 import RevenueChart from "@/components/DashboardComponents/RevenewChart";
 import SessionPieChart from "@/components/DashboardComponents/SessionPieChart";
 import BookingBarChart from "@/components/DashboardComponents/BookingBarChart";
+import { useGetDashboardOverviewQuery } from "@/redux/features/dashboard/dashboardAPI";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { setDashboardRange } from "@/redux/features/dashboard/dashboardSlice";
+import type { DashboardRange } from "@/types/DashboardTypes";
+
+const RANGE_OPTIONS: DashboardRange[] = ["week", "month", "year"];
+
+const STATS_ICON_BY_KEY: Record<string, ReactNode> = {
+  total_revenue: <DollarSign className="w-4 h-4" />,
+  total_bookings: <CalendarCheck className="w-4 h-4" />,
+  upcoming_sessions: <Gamepad2 className="w-4 h-4" />,
+  matches_hosted: <Trophy className="w-4 h-4" />,
+};
 
 export default function Home() {
+  const dispatch = useAppDispatch();
+  const selectedRange = useAppSelector(
+    (state) => state.dashboard.selectedRange,
+  );
+
+  const { data, isLoading, isFetching, isError } =
+    useGetDashboardOverviewQuery(selectedRange);
+
+  const payload = data?.data;
+  const header = payload?.analytics_header;
+  const statsItems = payload?.mark_1.items ?? [];
+
+  const revenueSection = payload?.mark_2;
+  const revenueRanges = (revenueSection?.range_options ?? []).filter(
+    (option): option is DashboardRange =>
+      RANGE_OPTIONS.includes(option as DashboardRange),
+  );
+  const visibleRanges =
+    revenueRanges.length > 0 ? revenueRanges : RANGE_OPTIONS;
+
   return (
     <div className="w-full p-3 md:p-4">
       <div className="max-w-625 mx-auto space-y-4 md:space-y-6">
-        {/* Header */}
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-2xl font-bold text-primary">
-              Analytics report
+              {header?.title ?? "Analytics report"}
             </h1>
             <p className="text-sm text-secondary mt-0.5">
-              Analytics support form 2025 to 2026
+              {header?.subtitle ?? "Analytics support form 2025 to 2026"}
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap justify-end">
             <button className="flex items-center gap-2 bg-muted hover:bg-muted/80 text-primary text-sm font-medium px-4 py-2 rounded-lg border border-white/5 transition-colors">
               <FileText className="w-4 h-4" />
-              All Reports
+              {header?.report_type ?? "All Reports"}
             </button>
-            <button className="flex items-center gap-2 bg-muted hover:bg-muted/80 text-primary text-sm font-medium px-4 py-2 rounded-lg border border-white/5 transition-colors">
-              <CalendarRange className="w-4 h-4" />
-              2025 - 2026
-            </button>
+
+            <div className="flex bg-muted rounded-lg p-0.5 border border-white/5">
+              {visibleRanges.map((range) => (
+                <button
+                  key={range}
+                  onClick={() => dispatch(setDashboardRange(range))}
+                  className={`px-3 py-2 cursor-pointer text-xs font-medium rounded-md transition-all ${
+                    selectedRange === range
+                      ? "bg-custom-red text-primary"
+                      : "text-primary hover:text-secondary"
+                  }`}
+                >
+                  {range.charAt(0).toUpperCase() + range.slice(1)}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Stats Cards */}
+        {isLoading || isFetching ? (
+          <div className="text-sm text-muted-foreground">
+            Loading dashboard...
+          </div>
+        ) : null}
+
+        {isError ? (
+          <div className="text-sm text-destructive">
+            Failed to load dashboard data.
+          </div>
+        ) : null}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatsCard
-            title="Total Revenue"
-            value="$60K"
-            change={4.3}
-            icon={<DollarSign className="w-4 h-4" />}
-          />
-          <StatsCard
-            title="Total Bookings"
-            value="48.1K"
-            change={4.3}
-            icon={<CalendarCheck className="w-4 h-4" />}
-          />
-          <StatsCard
-            title="Upcoming Sessions"
-            value="9856"
-            change={4.3}
-            icon={<Gamepad2 className="w-4 h-4" />}
-          />
-          <StatsCard
-            title="Matches Hosted"
-            value="262"
-            change={4.3}
-            icon={<Trophy className="w-4 h-4" />}
-          />
+          {statsItems.map((item) => (
+            <StatsCard
+              key={item.key}
+              title={item.label}
+              value={item.value_display}
+              change={item.change.display}
+              isPositive={item.change.is_positive}
+              icon={
+                STATS_ICON_BY_KEY[item.key] ?? (
+                  <DollarSign className="w-4 h-4" />
+                )
+              }
+            />
+          ))}
         </div>
 
-        {/* Revenue Chart */}
-        <RevenueChart />
+        {revenueSection ? (
+          <RevenueChart
+            title={revenueSection.title}
+            valueDisplay={revenueSection.value_display}
+            legends={revenueSection.legends}
+            chartData={revenueSection.chart}
+          />
+        ) : null}
 
-        {/* Bottom Row - Session Distribution & Booking Bar Chart */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <SessionPieChart />
-          <BookingBarChart />
+          {payload?.mark_3 ? (
+            <SessionPieChart
+              title={payload.mark_3.title}
+              centerValueDisplay={payload.mark_3.center_value_display}
+              items={payload.mark_3.items}
+            />
+          ) : null}
+
+          {payload?.mark_4 ? (
+            <BookingBarChart
+              title={payload.mark_4.title}
+              valueDisplay={payload.mark_4.value_display}
+              subtitle={payload.mark_4.subtitle}
+              totalsDisplay={payload.mark_4.totals_display}
+              legends={payload.mark_4.legends}
+              chartData={payload.mark_4.chart}
+            />
+          ) : null}
         </div>
       </div>
     </div>

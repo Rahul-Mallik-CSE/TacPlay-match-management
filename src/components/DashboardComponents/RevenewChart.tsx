@@ -2,7 +2,7 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import {
   AreaChart,
   Area,
@@ -12,21 +12,17 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import type {
+  DashboardLegend,
+  DashboardMark2ChartItem,
+} from "@/types/DashboardTypes";
 
-const data = [
-  { name: "Mon", revenueGrowth: 1800, bookingCount: 800 },
-  { name: "Tue", revenueGrowth: 2000, bookingCount: 1000 },
-  { name: "Wed", revenueGrowth: 2200, bookingCount: 1200 },
-  { name: "Thu", revenueGrowth: 3500, bookingCount: 1800 },
-  { name: "Fri", revenueGrowth: 4200, bookingCount: 2200 },
-  { name: "Sat", revenueGrowth: 3000, bookingCount: 2000 },
-  { name: "Sun", revenueGrowth: 2800, bookingCount: 1500 },
-  { name: "Mon", revenueGrowth: 3800, bookingCount: 1800 },
-  { name: "Tue", revenueGrowth: 4500, bookingCount: 2500 },
-  { name: "Wed", revenueGrowth: 4000, bookingCount: 2200 },
-];
-
-const tabs = ["Day", "Week", "Month", "Year"];
+type RevenueChartProps = {
+  title: string;
+  valueDisplay: string;
+  legends: DashboardLegend[];
+  chartData: DashboardMark2ChartItem[];
+};
 
 const CustomTooltip = ({
   active,
@@ -52,57 +48,41 @@ const CustomTooltip = ({
   return null;
 };
 
-const RevenueChart: React.FC = () => {
-  const [activeTab, setActiveTab] = useState("Day");
+const RevenueChart: React.FC<RevenueChartProps> = ({
+  title,
+  valueDisplay,
+  legends,
+  chartData,
+}) => {
+  const legendA = legends[0]?.label ?? "Revenue Growth";
+  const legendB = legends[1]?.label ?? "Booking Count";
 
   return (
     <div className="bg-card border border-white/5 rounded-xl p-5">
       {/* Header */}
       <div className="flex items-start justify-between mb-6">
         <div>
-          <p className="text-sm md:text-sm text-secondary mb-1">
-            Total Revenue
-          </p>
+          <p className="text-sm md:text-sm text-secondary mb-1">{title}</p>
           <h2 className="text-xl md:text-3xl font-bold text-primary">
-            $650.5K
+            {valueDisplay}
           </h2>
         </div>
-        <div className="flex flex-col items-end gap-3">
-          {/* Tabs */}
-          <div className="flex bg-muted rounded-lg p-0.5">
-            {tabs.map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-3 py-1 cursor-pointer text-xs font-medium rounded-md transition-all ${
-                  activeTab === tab
-                    ? "bg-custom-red text-primary"
-                    : "text-primary hover:text-secondary"
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-custom-red" />
+            <span className="text-xs text-primary">{legendA}</span>
           </div>
-          {/* Legend */}
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-custom-red" />
-              <span className="text-xs text-primary">Revenue Growth</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-custom-yellow" />
-              <span className="text-xs text-primary">Booking Count</span>
-            </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-custom-yellow" />
+            <span className="text-xs text-primary">{legendB}</span>
           </div>
         </div>
       </div>
 
-      {/* Chart */}
       <div className="w-full h-40 sm:h-48 md:h-56 lg:h-64 xl:h-70">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
-            data={data}
+            data={chartData}
             margin={{ top: 5, right: 5, left: -15, bottom: 0 }}
           >
             <defs>
@@ -121,7 +101,7 @@ const RevenueChart: React.FC = () => {
               vertical={false}
             />
             <XAxis
-              dataKey="name"
+              dataKey="label"
               axisLine={false}
               tickLine={false}
               tick={{ fill: "#525273", fontSize: 12 }}
@@ -137,16 +117,16 @@ const RevenueChart: React.FC = () => {
             <Tooltip content={<CustomTooltip />} />
             <Area
               type="monotone"
-              dataKey="bookingCount"
-              name="Booking Count"
+              dataKey="booking_count"
+              name={legendB}
               stroke="#b4971e"
               strokeWidth={2}
               fill="url(#bookingGradient)"
             />
             <Area
               type="monotone"
-              dataKey="revenueGrowth"
-              name="Revenue Growth"
+              dataKey="revenue_growth"
+              name={legendA}
               stroke="#980009"
               strokeWidth={2}
               fill="url(#revenueGradient)"

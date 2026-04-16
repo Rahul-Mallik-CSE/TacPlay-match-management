@@ -12,16 +12,19 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import type {
+  DashboardLegend,
+  DashboardMark4ChartItem,
+} from "@/types/DashboardTypes";
 
-const data = [
-  { name: "Sun", premium: 5000, free: 3000 },
-  { name: "Mon", premium: 8000, free: 2000 },
-  { name: "Tue", premium: 6000, free: 4000 },
-  { name: "Wed", premium: 12000, free: 5000 },
-  { name: "Thu", premium: 35000, free: 8000 },
-  { name: "Fri", premium: 40000, free: 5000 },
-  { name: "Sat", premium: 10000, free: 4000 },
-];
+type BookingBarChartProps = {
+  title: string;
+  valueDisplay: string;
+  subtitle: string;
+  totalsDisplay: string;
+  legends: DashboardLegend[];
+  chartData: DashboardMark4ChartItem[];
+};
 
 const CustomTooltip = ({
   active,
@@ -47,40 +50,45 @@ const CustomTooltip = ({
   return null;
 };
 
-const BookingBarChart: React.FC = () => {
+const BookingBarChart: React.FC<BookingBarChartProps> = ({
+  title,
+  valueDisplay,
+  subtitle,
+  totalsDisplay,
+  legends,
+  chartData,
+}) => {
+  const legendA = legends[0]?.label ?? "Premium";
+  const legendB = legends[1]?.label ?? "Free";
+
   return (
     <div className="bg-card border border-white/5 rounded-xl p-5 flex-1">
-      {/* Header */}
       <div className="flex items-start justify-between mb-1">
         <div>
-          <h3 className="text-base font-semibold text-secondary">
-            Booking Source Breakdown
-          </h3>
+          <h3 className="text-base font-semibold text-secondary">{title}</h3>
           <h2 className="text-xl md:text-3xl font-bold text-primary mt-1">
-            254,852
+            {valueDisplay}
           </h2>
           <p className="text-xs text-secondary mt-0.5">
-            Premium / Free&nbsp;&nbsp;&nbsp;45,762 / 2,491
+            {subtitle}&nbsp;&nbsp;&nbsp;{totalsDisplay}
           </p>
         </div>
-        {/* Legend */}
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-custom-red" />
-            <span className="text-xs text-secondary">Premium</span>
+            <span className="text-xs text-secondary">{legendA}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-custom-yellow" />
-            <span className="text-xs text-secondary">Free</span>
+            <span className="text-xs text-secondary">{legendB}</span>
           </div>
         </div>
       </div>
 
-      {/* Chart */}
       <div className="w-full h-32 sm:h-40 md:h-48 lg:h-50 mt-4">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
-            data={data}
+            data={chartData}
             margin={{ top: 5, right: 5, left: -15, bottom: 0 }}
             barGap={2}
           >
@@ -90,7 +98,7 @@ const BookingBarChart: React.FC = () => {
               vertical={false}
             />
             <XAxis
-              dataKey="name"
+              dataKey="label"
               axisLine={false}
               tickLine={false}
               tick={{ fill: "#525273", fontSize: 12 }}
@@ -106,14 +114,14 @@ const BookingBarChart: React.FC = () => {
             <Tooltip content={<CustomTooltip />} />
             <Bar
               dataKey="premium"
-              name="Premium"
+              name={legendA}
               fill="#980009"
               radius={[3, 3, 0, 0]}
               barSize={12}
             />
             <Bar
               dataKey="free"
-              name="Free"
+              name={legendB}
               fill="#b4971e"
               radius={[3, 3, 0, 0]}
               barSize={12}

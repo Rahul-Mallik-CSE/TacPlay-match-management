@@ -4,31 +4,38 @@
 
 import React from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
-
-const data = [
-  { name: "Social Match", value: 2568 },
-  { name: "Ranked Match", value: 2568 },
-];
+import type { DashboardMark3Item } from "@/types/DashboardTypes";
 
 const COLORS = ["#980009", "#b4971e"];
 
-const SessionPieChart: React.FC = () => {
-  const totalSessions = 68;
+type SessionPieChartProps = {
+  title: string;
+  centerValueDisplay: string;
+  items: DashboardMark3Item[];
+};
+
+const SessionPieChart: React.FC<SessionPieChartProps> = ({
+  title,
+  centerValueDisplay,
+  items,
+}) => {
+  const chartData = items.map((item) => ({
+    name: item.label,
+    value: item.value,
+  }));
 
   return (
     <div className="bg-card border border-white/5 rounded-xl p-5 flex-1">
-      {/* Header */}
       <h3 className="text-base md:text-lg font-semibold text-secondary mb-4">
-        Session Distribution
+        {title}
       </h3>
 
-      {/* Chart with center label */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-center relative gap-4">
         <div className="w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 lg:w-45 lg:h-45 mx-auto sm:mx-0">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
-                data={data}
+                data={chartData}
                 cx="50%"
                 cy="50%"
                 innerRadius={45}
@@ -39,7 +46,7 @@ const SessionPieChart: React.FC = () => {
                 endAngle={-270}
                 stroke="none"
               >
-                {data.map((_, index) => (
+                {chartData.map((_, index) => (
                   <Cell
                     key={`cell-${index}`}
                     fill={COLORS[index % COLORS.length]}
@@ -48,20 +55,15 @@ const SessionPieChart: React.FC = () => {
               </Pie>
             </PieChart>
           </ResponsiveContainer>
-          {/* Center text */}
           <div className="absolute inset-0 flex items-center justify-center flex-col">
-            <span className="text-xl sm:text-2xl font-bold text-primary">
-              {totalSessions}
-            </span>
-            <span className="text-[8px] sm:text-[10px] text-secondary">
-              Sessions
+            <span className="text-[10px] sm:text-xs text-secondary text-center px-4">
+              {centerValueDisplay}
             </span>
           </div>
         </div>
 
-        {/* Right side labels */}
         <div className="flex flex-col gap-2 sm:ml-4">
-          {data.map((entry, index) => (
+          {chartData.map((entry, index) => (
             <div key={entry.name} className="flex items-center gap-2">
               <span
                 className="w-2.5 h-2.5 rounded-full"
@@ -75,16 +77,16 @@ const SessionPieChart: React.FC = () => {
         </div>
       </div>
 
-      {/* Legend */}
       <div className="flex items-center justify-center gap-6 mt-4">
-        <div className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-sm bg-custom-red" />
-          <span className="text-xs text-secondary">Social Match</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-sm bg-custom-yellow" />
-          <span className="text-xs text-secondary">Ranked Match</span>
-        </div>
+        {chartData.map((entry, index) => (
+          <div key={entry.name} className="flex items-center gap-1.5">
+            <span
+              className="w-2.5 h-2.5 rounded-sm"
+              style={{ backgroundColor: COLORS[index % COLORS.length] }}
+            />
+            <span className="text-xs text-secondary">{entry.name}</span>
+          </div>
+        ))}
       </div>
     </div>
   );

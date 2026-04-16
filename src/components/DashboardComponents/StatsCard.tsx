@@ -8,7 +8,8 @@ import { TrendingUp, TrendingDown } from "lucide-react";
 interface StatsCardProps {
   title: string;
   value: string;
-  change: number;
+  change: string;
+  isPositive: boolean;
   icon: React.ReactNode;
 }
 
@@ -16,10 +17,9 @@ const StatsCard: React.FC<StatsCardProps> = ({
   title,
   value,
   change,
+  isPositive,
   icon,
 }) => {
-  const isPositive = change >= 0;
-
   return (
     <div className="bg-card border border-white/5 rounded-xl p-5 flex flex-col gap-3 min-w-0 flex-1">
       <div className="flex items-start justify-between gap-2">
@@ -38,8 +38,7 @@ const StatsCard: React.FC<StatsCardProps> = ({
           ) : (
             <TrendingDown className="w-3 h-3" />
           )}
-          {isPositive ? "+" : ""}
-          {change}%
+          {change}
         </span>
       </div>
       <div className="flex items-center gap-2 text-secondary text-sm">
