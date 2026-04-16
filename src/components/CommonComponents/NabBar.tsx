@@ -15,14 +15,20 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import LogoutModal from "./LogOutModal";
 import { SidebarTrigger } from "../ui/sidebar";
+import { clearAuthTokens } from "@/lib/auth";
+import { useAppDispatch } from "@/redux/hooks";
+import { clearAuthSession } from "@/redux/features/auth/authSlice";
 
 const NavBar = () => {
   const pathname = usePathname();
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   const handleLogout = async () => {
     setIsLogoutModalOpen(false);
+    clearAuthTokens();
+    dispatch(clearAuthSession());
     await fetch("/api/auth/session", { method: "DELETE" });
     router.push("/sign-in");
     router.refresh();
