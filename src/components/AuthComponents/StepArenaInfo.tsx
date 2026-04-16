@@ -2,7 +2,7 @@
 
 "use client";
 
-import React, { useEffect, useId, useMemo, useRef } from "react";
+import React, { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -13,6 +13,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Camera } from "lucide-react";
+import {
+  getDataCitysByCountry,
+  getDataCountrys,
+  type cityProps,
+  type countryProps,
+} from "country-state-city-nextjs";
 
 export type ArenaStepForm = {
   field_name: string;
@@ -28,24 +34,65 @@ type StepArenaInfoProps = {
   onChange: (patch: Partial<ArenaStepForm>) => void;
 };
 
-const COUNTRIES = [
-  "Bangladesh",
-  "United Kingdom",
-  "United States",
-  "Canada",
-  "Australia",
-];
-
-const CITIES = ["Dhaka", "London", "New York", "Toronto", "Sydney"];
-
 const StepArenaInfo = ({ value, onChange }: StepArenaInfoProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const inputId = useId();
+  const [countries, setCountries] = useState<countryProps[]>([]);
+  const [cities, setCities] = useState<cityProps[]>([]);
 
   const imagePreviewUrl = useMemo(() => {
     if (!value.image) return null;
     return URL.createObjectURL(value.image);
   }, [value.image]);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadCountries = async () => {
+      const data = (await getDataCountrys()) as countryProps[];
+      if (!active) return;
+      setCountries(Array.isArray(data) ? data : []);
+    };
+
+    loadCountries();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadCities = async () => {
+      if (!value.country) {
+        setCities([]);
+        return;
+      }
+
+      const selectedCountry = countries.find(
+        (country) => country.text === value.country,
+      );
+      if (!selectedCountry) {
+        setCities([]);
+        return;
+      }
+
+      const data = (await getDataCitysByCountry({
+        id: selectedCountry.id,
+        text: selectedCountry.text,
+      })) as cityProps[];
+
+      if (!active) return;
+      setCities(Array.isArray(data) ? data : []);
+    };
+
+    loadCities();
+
+    return () => {
+      active = false;
+    };
+  }, [countries, value.country]);
 
   useEffect(() => {
     return () => {
@@ -95,15 +142,15 @@ const StepArenaInfo = ({ value, onChange }: StepArenaInfoProps) => {
             <label className="text-sm font-medium text-primary">Country</label>
             <Select
               value={value.country}
-              onValueChange={(v) => onChange({ country: v })}
+              onValueChange={(v) => onChange({ country: v, city: "" })}
             >
               <SelectTrigger className="w-full bg-input/30 border-white/10 text-primary h-11">
                 <SelectValue placeholder="Select country" />
               </SelectTrigger>
               <SelectContent className="bg-card border-white/10">
-                {COUNTRIES.map((c) => (
-                  <SelectItem key={c} value={c}>
-                    {c}
+                {countries.map((country) => (
+                  <SelectItem key={country.id} value={country.text}>
+                    {country.text}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -111,14 +158,17 @@ const StepArenaInfo = ({ value, onChange }: StepArenaInfoProps) => {
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium text-primary">City</label>
-            <Select value={value.city} onValueChange={(v) => onChange({ city: v })}>
+            <Select
+              value={value.city}
+              onValueChange={(v) => onChange({ city: v })}
+            >
               <SelectTrigger className="w-full bg-input/30 border-white/10 text-primary h-11">
                 <SelectValue placeholder="Select city" />
               </SelectTrigger>
               <SelectContent className="bg-card border-white/10">
-                {CITIES.map((c) => (
-                  <SelectItem key={c} value={c}>
-                    {c}
+                {cities.map((city) => (
+                  <SelectItem key={city.id} value={city.text}>
+                    {city.text}
                   </SelectItem>
                 ))}
               </SelectContent>

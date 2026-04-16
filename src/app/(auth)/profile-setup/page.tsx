@@ -26,8 +26,8 @@ import {
   useSubmitStep4PayoutBusinessMutation,
   type CompletionFlowResponse,
   type Step2MatchRequirementsBody,
-} from "@/redux/features/settings/settingsAPI";
-import { setArenaField } from "@/redux/features/settings/settingsSlice";
+} from "@/redux/features/arenaManagement/arenaManagementAPI";
+import { setArenaField } from "@/redux/features/arenaManagement/arenaManagementSlice";
 import { useAppDispatch } from "@/redux/hooks";
 import { getErrorMessage, getSuccessMessage } from "@/lib/auth";
 

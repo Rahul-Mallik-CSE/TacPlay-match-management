@@ -2,7 +2,7 @@
 
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Pen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,8 +14,80 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  getDataCitysByCountry,
+  getDataCountrys,
+  type cityProps,
+  type countryProps,
+} from "country-state-city-nextjs";
 
 const ArenaInfoTab = () => {
+  const [countries, setCountries] = useState<countryProps[]>([]);
+  const [cities, setCities] = useState<cityProps[]>([]);
+  const [selectedCountry, setSelectedCountry] = useState("United Kingdom");
+  const [selectedCity, setSelectedCity] = useState("Birmingham");
+
+  useEffect(() => {
+    let active = true;
+
+    const loadCountries = async () => {
+      const data = (await getDataCountrys()) as countryProps[];
+      if (!active) return;
+
+      const parsedCountries = Array.isArray(data) ? data : [];
+      setCountries(parsedCountries);
+      setSelectedCountry((previousCountry) => {
+        const selectedExists = parsedCountries.some(
+          (country) => country.text === previousCountry,
+        );
+        if (selectedExists) return previousCountry;
+        return parsedCountries[0]?.text ?? "";
+      });
+    };
+
+    loadCountries();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadCities = async () => {
+      const country = countries.find((item) => item.text === selectedCountry);
+      if (!country) {
+        setCities([]);
+        setSelectedCity("");
+        return;
+      }
+
+      const data = (await getDataCitysByCountry({
+        id: country.id,
+        text: country.text,
+      })) as cityProps[];
+
+      if (!active) return;
+      const parsedCities = Array.isArray(data) ? data : [];
+      setCities(parsedCities);
+
+      setSelectedCity((previousCity) => {
+        const cityExists = parsedCities.some(
+          (city) => city.text === previousCity,
+        );
+        if (cityExists) return previousCity;
+        return parsedCities[0]?.text ?? "";
+      });
+    };
+
+    loadCities();
+
+    return () => {
+      active = false;
+    };
+  }, [countries, selectedCountry]);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -71,29 +143,31 @@ const ArenaInfoTab = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className="text-sm font-medium text-primary">Country</label>
-            <Select defaultValue="united-country">
+            <Select value={selectedCountry} onValueChange={setSelectedCountry}>
               <SelectTrigger className="w-full bg-input/30 border-white/10 text-primary h-11">
                 <SelectValue placeholder="Select country" />
               </SelectTrigger>
               <SelectContent className="bg-card border-white/10">
-                <SelectItem value="united-country">United Country</SelectItem>
-                <SelectItem value="usa">United States</SelectItem>
-                <SelectItem value="uk">United Kingdom</SelectItem>
-                <SelectItem value="canada">Canada</SelectItem>
+                {countries.map((country) => (
+                  <SelectItem key={country.id} value={country.text}>
+                    {country.text}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium text-primary">City</label>
-            <Select defaultValue="canada">
+            <Select value={selectedCity} onValueChange={setSelectedCity}>
               <SelectTrigger className="w-full bg-input/30 border-white/10 text-primary h-11">
                 <SelectValue placeholder="Select city" />
               </SelectTrigger>
               <SelectContent className="bg-card border-white/10">
-                <SelectItem value="canada">Canada</SelectItem>
-                <SelectItem value="toronto">Toronto</SelectItem>
-                <SelectItem value="vancouver">Vancouver</SelectItem>
-                <SelectItem value="montreal">Montreal</SelectItem>
+                {cities.map((city) => (
+                  <SelectItem key={city.id} value={city.text}>
+                    {city.text}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
