@@ -39,7 +39,9 @@ const TOAST = {
 
 function ToastTitle({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-sm font-semibold leading-snug text-primary pr-6">{children}</p>
+    <p className="text-sm font-semibold leading-snug text-primary pr-6">
+      {children}
+    </p>
   );
 }
 
@@ -112,17 +114,16 @@ const defaultMatchRules: MatchRulesStepForm = {
 
 const defaultPackages: PackageEntryForm[] = [
   {
-    package_name: "Basic Package",
-    description: "Mask, gun, and 100 paintballs included",
-    package_fee: "59.00",
-    include_items: "Mask, Gun, 100 Paintballs",
+    package_name: "",
+    description: "",
+    package_fee: "",
+    include_items: "",
   },
   {
-    package_name: "Pro Package",
-    description:
-      "Mask, gun, protective vest, and 300 paintballs included",
-    package_fee: "99.00",
-    include_items: "Mask, Gun, Protective Vest, 300 Paintballs",
+    package_name: "",
+    description: "",
+    package_fee: "",
+    include_items: "",
   },
 ];
 
@@ -186,8 +187,7 @@ const ProfileSetupPage = () => {
   const [arena, setArena] = useState<ArenaStepForm>(defaultArena);
   const [matchRules, setMatchRules] =
     useState<MatchRulesStepForm>(defaultMatchRules);
-  const [packages, setPackages] =
-    useState<PackageEntryForm[]>(defaultPackages);
+  const [packages, setPackages] = useState<PackageEntryForm[]>(defaultPackages);
   const [payout, setPayout] = useState<PayoutStepForm>(defaultPayout);
 
   const router = useRouter();
@@ -379,9 +379,7 @@ const ProfileSetupPage = () => {
         return (
           <StepArenaInfo
             value={arena}
-            onChange={(patch) =>
-              setArena((prev) => ({ ...prev, ...patch }))
-            }
+            onChange={(patch) => setArena((prev) => ({ ...prev, ...patch }))}
           />
         );
       case 1:
@@ -399,9 +397,7 @@ const ProfileSetupPage = () => {
             value={packages}
             onChange={(index, patch) =>
               setPackages((prev) =>
-                prev.map((p, i) =>
-                  i === index ? { ...p, ...patch } : p,
-                ),
+                prev.map((p, i) => (i === index ? { ...p, ...patch } : p)),
               )
             }
           />
@@ -410,9 +406,7 @@ const ProfileSetupPage = () => {
         return (
           <StepPayoutSetup
             value={payout}
-            onChange={(patch) =>
-              setPayout((prev) => ({ ...prev, ...patch }))
-            }
+            onChange={(patch) => setPayout((prev) => ({ ...prev, ...patch }))}
           />
         );
       default:
