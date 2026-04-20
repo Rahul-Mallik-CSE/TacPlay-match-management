@@ -270,3 +270,37 @@ export type SessionCheckInResponse = {
   };
   requestId: string;
 };
+
+export type CreateSessionResponse = {
+  success: boolean;
+  message: string;
+  data: {
+    id: number;
+    team_a_logo: string | null;
+    team_b_logo: string | null;
+    session_name: string;
+    match_type: string;
+    session_visibility: string;
+    description: string;
+    match_date: string;
+    start_time: string;
+    start_time_period: string;
+    end_time: string;
+    end_time_period: string;
+    duration: number;
+    booking_cut_off_time: number;
+    booking_cut_off_unit: string;
+    team_a_player: number;
+    team_b_player: number;
+    session_type: string;
+    team_a_name: string | null;
+    team_b_name: string | null;
+    entry_fee: number;
+    team_a_score: number;
+    team_b_score: number;
+    status: string;
+    owner: number;
+  };
+};
+
+export type CreateSessionPayload = FormData;

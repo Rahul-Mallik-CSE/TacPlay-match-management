@@ -2,6 +2,8 @@
 
 import baseAPI from "@/redux/api/baseAPI";
 import type {
+  CreateSessionPayload,
+  CreateSessionResponse,
   SessionActionResponse,
   SessionCheckInPayload,
   SessionCheckInResponse,
@@ -89,6 +91,17 @@ const sessionsAPI = baseAPI.injectEndpoints({
       }),
       invalidatesTags: ["Sessions"],
     }),
+    createOwnerSession: builder.mutation<
+      CreateSessionResponse,
+      CreateSessionPayload
+    >({
+      query: (payload) => ({
+        url: "/api/session/owner/sessions/create/",
+        method: "POST",
+        body: payload,
+      }),
+      invalidatesTags: ["Sessions"],
+    }),
   }),
 });
 
@@ -101,6 +114,7 @@ export const {
   useCancelOwnerSessionMatchMutation,
   useSubmitOwnerSessionResultMutation,
   useCheckInOwnerSessionPlayersMutation,
+  useCreateOwnerSessionMutation,
 } = sessionsAPI;
 
 export default sessionsAPI;

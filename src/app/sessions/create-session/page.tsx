@@ -2,7 +2,7 @@
 
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   ChevronDown,
@@ -12,41 +12,256 @@ import {
   FileImage,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { toast } from "react-toastify";
+import { getErrorMessage, getSuccessMessage } from "@/lib/auth";
+import { useCreateOwnerSessionMutation } from "@/redux/features/sessions/sessionsAPI";
+
+type SessionType = "teams" | "manual_player";
+
+type CreateSessionForm = {
+  session_name: string;
+  match_type: "ranked" | "social";
+  session_visibility: "premium" | "public" | "private";
+  description: string;
+  match_date: string;
+  start_time: string;
+  end_time: string;
+  booking_cut_off_time: string;
+  booking_cut_off_unit: "hours" | "minutes" | "days";
+  team_a_player: string;
+  team_b_player: string;
+  session_type: SessionType;
+  team_a_name: string;
+  team_b_name: string;
+  entry_fee: string;
+};
+
+const DEFAULT_FORM: CreateSessionForm = {
+  session_name: "",
+  match_type: "ranked",
+  session_visibility: "premium",
+  description: "",
+  match_date: "",
+  start_time: "",
+  end_time: "",
+  booking_cut_off_time: "",
+  booking_cut_off_unit: "hours",
+  team_a_player: "",
+  team_b_player: "",
+  session_type: "teams",
+  team_a_name: "",
+  team_b_name: "",
+  entry_fee: "",
+};
+
+const SELECT_OPTIONS = {
+  matchType: [
+    { label: "Ranked", value: "ranked" },
+    { label: "Social", value: "social" },
+  ],
+  sessionVisibility: [
+    { label: "Premium", value: "premium" },
+    { label: "Public", value: "public" },
+    { label: "Private", value: "private" },
+  ],
+  bookingCutOffUnit: [
+    { label: "Hours", value: "hours" },
+    { label: "Minutes", value: "minutes" },
+    { label: "Days", value: "days" },
+  ],
+  sessionType: [
+    { label: "Team", value: "teams" },
+    { label: "Manual Player", value: "manual_player" },
+  ],
+} as const;
+
+const isValidTime = (value: string) =>
+  /^([01]\d|2[0-3]):([0-5]\d)$/.test(value);
+
+const convertToMinutes = (time: string) => {
+  if (!isValidTime(time)) return null;
+
+  const [hourString, minuteString] = time.split(":");
+  const hour = Number(hourString);
+  const minute = Number(minuteString);
+  const normalizedHour = hour % 24;
+
+  return normalizedHour * 60 + minute;
+};
+
+const to12HourTimeWithPeriod = (time: string) => {
+  if (!isValidTime(time)) {
+    return {
+      time: "",
+      period: "AM" as const,
+    };
+  }
+
+  const [hourString, minuteString] = time.split(":");
+  const hour24 = Number(hourString);
+  const period = hour24 >= 12 ? "PM" : "AM";
+  const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
+
+  return {
+    time: `${String(hour12).padStart(2, "0")}:${minuteString}`,
+    period,
+  };
+};
 
 const CreateSessionPage = () => {
-  const [sessionType, setSessionType] = useState<string>("");
+  const router = useRouter();
+  const [createOwnerSession, { isLoading: isCreating }] =
+    useCreateOwnerSessionMutation();
+
+  const [form, setForm] = useState<CreateSessionForm>(DEFAULT_FORM);
+
   const [sessionTypeOpen, setSessionTypeOpen] = useState(false);
   const [matchTypeOpen, setMatchTypeOpen] = useState(false);
   const [visibilityOpen, setVisibilityOpen] = useState(false);
-  const [, setBookingCutOffUnit] = useState("Hours");
   const [cutOffUnitOpen, setCutOffUnitOpen] = useState(false);
-  const [startAmPm, setStartAmPm] = useState("AM");
-  const [endAmPm, setEndAmPm] = useState("AM");
-  const [startAmPmOpen, setStartAmPmOpen] = useState(false);
-  const [endAmPmOpen, setEndAmPmOpen] = useState(false);
 
-  // File upload states
   const [teamALogo, setTeamALogo] = useState<File | null>(null);
   const [teamBLogo, setTeamBLogo] = useState<File | null>(null);
-  const [teamAUploaded, setTeamAUploaded] = useState(false);
-  const [teamBUploaded, setTeamBUploaded] = useState(false);
+
   const teamARef = useRef<HTMLInputElement>(null);
   const teamBRef = useRef<HTMLInputElement>(null);
 
-  const handleTeamAUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setTeamALogo(file);
-      setTeamAUploaded(true);
-    }
+  const durationDisplay = useMemo(() => {
+    const start = convertToMinutes(form.start_time);
+    const end = convertToMinutes(form.end_time);
+
+    if (start === null || end === null) return "Auto count";
+
+    const resolvedEnd = end <= start ? end + 24 * 60 : end;
+    const durationMinutes = resolvedEnd - start;
+
+    return durationMinutes > 0 ? `${durationMinutes} min` : "Auto count";
+  }, [form.end_time, form.start_time]);
+
+  const handleFieldChange = <T extends keyof CreateSessionForm>(
+    key: T,
+    value: CreateSessionForm[T],
+  ) => {
+    setForm((previous) => ({
+      ...previous,
+      [key]: value,
+    }));
   };
 
-  const handleTeamBUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setTeamBLogo(file);
-      setTeamBUploaded(true);
+  const handleTeamAUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] ?? null;
+    setTeamALogo(file);
+  };
+
+  const handleTeamBUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] ?? null;
+    setTeamBLogo(file);
+  };
+
+  const validateForm = () => {
+    if (!form.session_name.trim()) return "Session name is required.";
+    if (!form.description.trim()) return "Description is required.";
+    if (!form.match_date) return "Match date is required.";
+
+    if (!isValidTime(form.start_time)) {
+      return "Start time must be in HH:MM format (24-hour).";
+    }
+
+    if (!isValidTime(form.end_time)) {
+      return "End time must be in HH:MM format (24-hour).";
+    }
+
+    const start = convertToMinutes(form.start_time);
+    const end = convertToMinutes(form.end_time);
+    if (start === null || end === null) {
+      return "Invalid start or end time.";
+    }
+
+    const resolvedEnd = end <= start ? end + 24 * 60 : end;
+    if (resolvedEnd - start <= 0) {
+      return "End time must be after start time.";
+    }
+
+    const cutOff = Number(form.booking_cut_off_time);
+    if (!Number.isInteger(cutOff) || cutOff <= 0) {
+      return "Booking cut-off time must be a positive whole number.";
+    }
+
+    const teamAPlayers = Number(form.team_a_player);
+    const teamBPlayers = Number(form.team_b_player);
+    if (!Number.isInteger(teamAPlayers) || teamAPlayers <= 0) {
+      return "Team A player count must be a positive whole number.";
+    }
+    if (!Number.isInteger(teamBPlayers) || teamBPlayers <= 0) {
+      return "Team B player count must be a positive whole number.";
+    }
+
+    const entryFee = Number(form.entry_fee);
+    if (Number.isNaN(entryFee) || entryFee < 0) {
+      return "Entry fee must be a valid positive number or zero.";
+    }
+
+    if (form.session_type === "manual_player") {
+      if (!form.team_a_name.trim()) return "Team A name is required.";
+      if (!form.team_b_name.trim()) return "Team B name is required.";
+      if (!teamALogo) return "Team A logo is required for Manual Player mode.";
+      if (!teamBLogo) return "Team B logo is required for Manual Player mode.";
+    }
+
+    return null;
+  };
+
+  const buildPayload = () => {
+    const payload = new FormData();
+
+    payload.append("session_name", form.session_name.trim());
+    payload.append("match_type", form.match_type);
+    payload.append("session_visibility", form.session_visibility);
+    payload.append("description", form.description.trim());
+    payload.append("match_date", form.match_date);
+    const start12 = to12HourTimeWithPeriod(form.start_time);
+    const end12 = to12HourTimeWithPeriod(form.end_time);
+    payload.append("start_time", start12.time);
+    payload.append("start_time_period", start12.period);
+    payload.append("end_time", end12.time);
+    payload.append("end_time_period", end12.period);
+    payload.append("booking_cut_off_time", form.booking_cut_off_time);
+    payload.append("booking_cut_off_unit", form.booking_cut_off_unit);
+    payload.append("team_a_player", form.team_a_player);
+    payload.append("team_b_player", form.team_b_player);
+    payload.append("session_type", form.session_type);
+    payload.append("entry_fee", form.entry_fee);
+
+    if (form.session_type === "manual_player") {
+      payload.append("team_a_name", form.team_a_name.trim());
+      payload.append("team_b_name", form.team_b_name.trim());
+
+      if (teamALogo) payload.append("team_a_logo", teamALogo);
+      if (teamBLogo) payload.append("team_b_logo", teamBLogo);
+    }
+
+    return payload;
+  };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const validationError = validateForm();
+    if (validationError) {
+      toast.error(validationError);
+      return;
+    }
+
+    try {
+      const response = await createOwnerSession(buildPayload()).unwrap();
+      toast.success(
+        getSuccessMessage(response, "Session created successfully."),
+      );
+      router.push("/sessions");
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to create session."));
     }
   };
 
@@ -72,7 +287,7 @@ const CreateSessionPage = () => {
         </div>
 
         {/* Form */}
-        <form className="space-y-8">
+        <form className="space-y-8" onSubmit={handleSubmit}>
           {/* ── Session Details ── */}
           <section className="space-y-4">
             <h2 className="text-lg font-semibold text-primary">
@@ -83,19 +298,28 @@ const CreateSessionPage = () => {
             <FormField label="Session Name">
               <input
                 type="text"
-                placeholder="enter dish name..."
+                placeholder="Enter session name"
                 className="form-input-style"
+                value={form.session_name}
+                onChange={(event) =>
+                  handleFieldChange("session_name", event.target.value)
+                }
               />
             </FormField>
 
             {/* Match Type */}
             <FormField label="Match Type">
               <CustomSelect
-                placeholder="enter dish name..."
-                options={["Ranked", "Social"]}
+                placeholder="Select match type"
+                options={SELECT_OPTIONS.matchType}
+                value={form.match_type}
                 open={matchTypeOpen}
                 onToggle={() => setMatchTypeOpen(!matchTypeOpen)}
-                onSelect={() => {
+                onSelect={(value) => {
+                  handleFieldChange(
+                    "match_type",
+                    value as CreateSessionForm["match_type"],
+                  );
                   setMatchTypeOpen(false);
                 }}
               />
@@ -104,11 +328,18 @@ const CreateSessionPage = () => {
             {/* Session Visibility */}
             <FormField label="Session Visibility">
               <CustomSelect
-                placeholder="enter dish name..."
-                options={["Public", "Private"]}
+                placeholder="Select visibility"
+                options={SELECT_OPTIONS.sessionVisibility}
+                value={form.session_visibility}
                 open={visibilityOpen}
                 onToggle={() => setVisibilityOpen(!visibilityOpen)}
-                onSelect={() => setVisibilityOpen(false)}
+                onSelect={(value) => {
+                  handleFieldChange(
+                    "session_visibility",
+                    value as CreateSessionForm["session_visibility"],
+                  );
+                  setVisibilityOpen(false);
+                }}
               />
             </FormField>
 
@@ -116,8 +347,12 @@ const CreateSessionPage = () => {
             <FormField label="Description">
               <textarea
                 rows={4}
-                placeholder="enter session description..."
+                placeholder="Enter session description"
                 className="form-input-style resize-none min-h-24"
+                value={form.description}
+                onChange={(event) =>
+                  handleFieldChange("description", event.target.value)
+                }
               />
             </FormField>
           </section>
@@ -132,42 +367,37 @@ const CreateSessionPage = () => {
             <FormField label="Match Date">
               <input
                 type="date"
-                placeholder="DD / MM / YYYY"
                 className="form-input-style"
+                value={form.match_date}
+                onChange={(event) =>
+                  handleFieldChange("match_date", event.target.value)
+                }
               />
             </FormField>
 
             {/* Start & End Time */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField label="Start Time">
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="00 : 00"
-                    className="form-input-style flex-1"
-                  />
-                  <AmPmSelect
-                    value={startAmPm}
-                    onChange={setStartAmPm}
-                    open={startAmPmOpen}
-                    onToggle={() => setStartAmPmOpen(!startAmPmOpen)}
-                  />
-                </div>
+                <input
+                  type="time"
+                  step={60}
+                  className="form-input-style"
+                  value={form.start_time}
+                  onChange={(event) =>
+                    handleFieldChange("start_time", event.target.value)
+                  }
+                />
               </FormField>
               <FormField label="End Time">
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="00 : 00"
-                    className="form-input-style flex-1"
-                  />
-                  <AmPmSelect
-                    value={endAmPm}
-                    onChange={setEndAmPm}
-                    open={endAmPmOpen}
-                    onToggle={() => setEndAmPmOpen(!endAmPmOpen)}
-                  />
-                </div>
+                <input
+                  type="time"
+                  step={60}
+                  className="form-input-style"
+                  value={form.end_time}
+                  onChange={(event) =>
+                    handleFieldChange("end_time", event.target.value)
+                  }
+                />
               </FormField>
             </div>
 
@@ -176,7 +406,7 @@ const CreateSessionPage = () => {
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="auto count"
+                  value={durationDisplay}
                   className="form-input-style pr-10"
                   readOnly
                 />
@@ -188,17 +418,29 @@ const CreateSessionPage = () => {
             <FormField label="Booking Cut-Off Time">
               <div className="flex gap-2">
                 <input
-                  type="text"
-                  placeholder="enter time"
+                  type="number"
+                  min={1}
+                  placeholder="Enter cut-off value"
                   className="form-input-style flex-1"
+                  value={form.booking_cut_off_time}
+                  onChange={(event) =>
+                    handleFieldChange(
+                      "booking_cut_off_time",
+                      event.target.value,
+                    )
+                  }
                 />
                 <CustomSelect
-                  placeholder="Hours"
-                  options={["Hours", "Minutes", "Days"]}
+                  placeholder="Unit"
+                  options={SELECT_OPTIONS.bookingCutOffUnit}
+                  value={form.booking_cut_off_unit}
                   open={cutOffUnitOpen}
                   onToggle={() => setCutOffUnitOpen(!cutOffUnitOpen)}
                   onSelect={(val) => {
-                    setBookingCutOffUnit(val);
+                    handleFieldChange(
+                      "booking_cut_off_unit",
+                      val as CreateSessionForm["booking_cut_off_unit"],
+                    );
                     setCutOffUnitOpen(false);
                   }}
                   className="w-28"
@@ -218,15 +460,25 @@ const CreateSessionPage = () => {
               <FormField label="Team A Player">
                 <input
                   type="number"
-                  placeholder="enter a player number"
+                  min={1}
+                  placeholder="Enter Team A players"
                   className="form-input-style"
+                  value={form.team_a_player}
+                  onChange={(event) =>
+                    handleFieldChange("team_a_player", event.target.value)
+                  }
                 />
               </FormField>
               <FormField label="Team B Player">
                 <input
                   type="number"
-                  placeholder="enter b player number"
+                  min={1}
+                  placeholder="Enter Team B players"
                   className="form-input-style"
+                  value={form.team_b_player}
+                  onChange={(event) =>
+                    handleFieldChange("team_b_player", event.target.value)
+                  }
                 />
               </FormField>
             </div>
@@ -235,33 +487,45 @@ const CreateSessionPage = () => {
             <FormField label="Session Type">
               <CustomSelect
                 placeholder="Select team mode"
-                options={["Individual Player", "Team"]}
+                options={SELECT_OPTIONS.sessionType}
+                value={form.session_type}
                 open={sessionTypeOpen}
                 onToggle={() => setSessionTypeOpen(!sessionTypeOpen)}
                 onSelect={(val) => {
-                  setSessionType(val);
+                  handleFieldChange(
+                    "session_type",
+                    val as CreateSessionForm["session_type"],
+                  );
                   setSessionTypeOpen(false);
                 }}
               />
             </FormField>
 
             {/* Conditional Team Fields - only when "Team" is selected */}
-            {sessionType === "Team" && (
+            {form.session_type === "manual_player" && (
               <>
                 {/* Team Names */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <FormField label="Team A Name">
                     <input
                       type="text"
-                      placeholder="enter A name"
+                      placeholder="Enter Team A name"
                       className="form-input-style"
+                      value={form.team_a_name}
+                      onChange={(event) =>
+                        handleFieldChange("team_a_name", event.target.value)
+                      }
                     />
                   </FormField>
                   <FormField label="Team B Name">
                     <input
                       type="text"
-                      placeholder="enter B name"
+                      placeholder="Enter Team B name"
                       className="form-input-style"
+                      value={form.team_b_name}
+                      onChange={(event) =>
+                        handleFieldChange("team_b_name", event.target.value)
+                      }
                     />
                   </FormField>
                 </div>
@@ -297,7 +561,7 @@ const CreateSessionPage = () => {
                         accept="image/*"
                         onChange={handleTeamAUpload}
                       />
-                      {teamAUploaded && teamALogo && (
+                      {teamALogo && (
                         <FileUploadStatus
                           fileName={teamALogo.name}
                           size={teamALogo.size}
@@ -335,7 +599,7 @@ const CreateSessionPage = () => {
                         accept="image/*"
                         onChange={handleTeamBUpload}
                       />
-                      {teamBUploaded && teamBLogo && (
+                      {teamBLogo && (
                         <FileUploadStatus
                           fileName={teamBLogo.name}
                           size={teamBLogo.size}
@@ -356,9 +620,14 @@ const CreateSessionPage = () => {
 
             <FormField label="Entry Fee">
               <input
-                type="text"
+                type="number"
+                min={0}
                 placeholder="Enter entry fee amount"
                 className="form-input-style"
+                value={form.entry_fee}
+                onChange={(event) =>
+                  handleFieldChange("entry_fee", event.target.value)
+                }
               />
             </FormField>
           </section>
@@ -373,8 +642,8 @@ const CreateSessionPage = () => {
                 Cancel
               </Button>
             </Link>
-            <Button type="submit" className="">
-              Create Session
+            <Button type="submit" disabled={isCreating}>
+              {isCreating ? "Creating..." : "Create Session"}
             </Button>
           </div>
         </form>
@@ -423,19 +692,22 @@ const FormField = ({
 const CustomSelect = ({
   placeholder,
   options,
+  value,
   open,
   onToggle,
   onSelect,
   className = "",
 }: {
   placeholder: string;
-  options: string[];
+  options: readonly { label: string; value: string }[];
+  value: string;
   open: boolean;
   onToggle: () => void;
   onSelect: (val: string) => void;
   className?: string;
 }) => {
-  const [selected, setSelected] = useState("");
+  const selectedLabel =
+    options.find((option) => option.value === value)?.label ?? "";
 
   return (
     <div className={`relative ${className}`}>
@@ -444,8 +716,8 @@ const CustomSelect = ({
         onClick={onToggle}
         className="w-full flex items-center justify-between bg-transparent border border-white/10 rounded-lg px-3.5 py-2.5 text-sm text-left outline-none hover:border-white/20 transition-colors"
       >
-        <span className={selected ? "text-primary" : "text-secondary/60"}>
-          {selected || placeholder}
+        <span className={selectedLabel ? "text-primary" : "text-secondary/60"}>
+          {selectedLabel || placeholder}
         </span>
         <ChevronDown
           className={`w-4 h-4 text-secondary transition-transform ${
@@ -457,15 +729,12 @@ const CustomSelect = ({
         <div className="absolute z-50 top-full mt-1 w-full bg-card border border-white/10 rounded-lg shadow-xl overflow-hidden">
           {options.map((option) => (
             <button
-              key={option}
+              key={option.value}
               type="button"
-              onClick={() => {
-                setSelected(option);
-                onSelect(option);
-              }}
+              onClick={() => onSelect(option.value)}
               className="w-full px-3.5 py-2 text-sm text-primary/80 hover:bg-muted/50 text-left transition-colors"
             >
-              {option}
+              {option.label}
             </button>
           ))}
         </div>
@@ -473,50 +742,6 @@ const CustomSelect = ({
     </div>
   );
 };
-
-const AmPmSelect = ({
-  value,
-  onChange,
-  open,
-  onToggle,
-}: {
-  value: string;
-  onChange: (val: string) => void;
-  open: boolean;
-  onToggle: () => void;
-}) => (
-  <div className="relative">
-    <button
-      type="button"
-      onClick={onToggle}
-      className="flex items-center gap-1 bg-transparent border border-white/10 rounded-lg px-3 py-2.5 text-sm text-primary outline-none hover:border-white/20 transition-colors"
-    >
-      {value}
-      <ChevronDown
-        className={`w-3 h-3 text-secondary transition-transform ${
-          open ? "rotate-180" : ""
-        }`}
-      />
-    </button>
-    {open && (
-      <div className="absolute z-50 top-full mt-1 w-full bg-card border border-white/10 rounded-lg shadow-xl overflow-hidden">
-        {["AM", "PM"].map((opt) => (
-          <button
-            key={opt}
-            type="button"
-            onClick={() => {
-              onChange(opt);
-              onToggle();
-            }}
-            className="w-full px-3 py-2 text-sm text-primary/80 hover:bg-muted/50 text-left transition-colors"
-          >
-            {opt}
-          </button>
-        ))}
-      </div>
-    )}
-  </div>
-);
 
 const FileUploadStatus = ({
   fileName,

@@ -127,7 +127,7 @@ const SessionTable: React.FC = () => {
 
         {/* Create New Session */}
         <Link href="/sessions/create-session">
-          <button className="flex items-center gap-2 bg-custom-red hover:bg-custom-red/80 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors">
+          <button className="flex cursor-pointer items-center gap-2 bg-custom-red hover:bg-custom-red/80 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors">
             <Plus className="w-4 h-4" />
             Create New Session
           </button>
