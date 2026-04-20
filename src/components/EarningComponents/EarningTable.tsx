@@ -6,6 +6,7 @@ import React, { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import CustomTable from "../CommonComponents/CustomTable";
 import TransactionDetailsSheet from "./TransactionDetailsSheet";
+import EarningLoading from "./EarningLoading";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import {
   setEarningsLimit,
@@ -40,6 +41,10 @@ const EarningTable = () => {
   const rows = data?.data ?? [];
   const totalPage = data?.meta.totalPage ?? 1;
   const totalCount = data?.meta.total ?? rows.length;
+
+  if ((isLoading || isFetching) && !data) {
+    return <EarningLoading />;
+  }
 
   const serviceTypeDot = (type: string) => {
     const isRanked = type.toLowerCase() === "ranked";
@@ -130,10 +135,6 @@ const EarningTable = () => {
           />
         </div>
       </div>
-
-      {isLoading || isFetching ? (
-        <div className="text-sm text-muted-foreground">Loading earnings...</div>
-      ) : null}
 
       {isError ? (
         <div className="text-sm text-destructive">Failed to load earnings.</div>

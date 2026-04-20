@@ -11,10 +11,11 @@ import ArenaInfoTab from "@/components/ArenaManagementComponents/ArenaInfoTab";
 import FieldSetupTab from "@/components/ArenaManagementComponents/FieldSetupTab";
 import PackageManagementTab from "@/components/ArenaManagementComponents/PackageManagementTab";
 import PayoutDetailsTab from "@/components/ArenaManagementComponents/PayoutDetailsTab";
+import ArenaManagementLoading from "@/components/ArenaManagementComponents/ArenaManagementLoading";
 import { toAbsoluteMediaUrl } from "@/lib/utils";
 
 const ArenaManagementPage = () => {
-  const { data } = useGetArenaInfoQuery();
+  const { data, isLoading, isFetching } = useGetArenaInfoQuery();
 
   const arenaInfo = data?.data;
   const userInfo = arenaInfo?.user_info;
@@ -34,6 +35,10 @@ const ArenaManagementPage = () => {
     arenaInfo?.media?.[0];
   const coverImageUrl = toAbsoluteMediaUrl(coverMedia?.file_url);
   const profileImageUrl = toAbsoluteMediaUrl(userInfo?.profile_image);
+
+  if ((isLoading || isFetching) && !arenaInfo) {
+    return <ArenaManagementLoading />;
+  }
 
   return (
     <div className="w-full pt-3 pb-6 md:pb-12 md:pt-4">

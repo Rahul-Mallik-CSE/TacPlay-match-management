@@ -6,6 +6,7 @@ import React, { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import CustomTable from "../CommonComponents/CustomTable";
 import BookingDetailsSheet from "@/components/BookingListComponents/BookingDetailsSheet";
+import BookingListLoading from "@/components/BookingListComponents/BookingListLoading";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import {
   setBookingListLimit,
@@ -36,6 +37,10 @@ const BookingListTable = () => {
   const rows = data?.data ?? [];
   const totalPage = data?.meta.totalPage ?? 1;
   const totalCount = data?.meta.total ?? rows.length;
+
+  if ((isLoading || isFetching) && !data) {
+    return <BookingListLoading />;
+  }
 
   const matchTypeDot = (type: string) => {
     const isRanked = type.toLowerCase() === "ranked";
@@ -130,10 +135,6 @@ const BookingListTable = () => {
           />
         </div>
       </div>
-
-      {isLoading || isFetching ? (
-        <div className="text-sm text-muted-foreground">Loading bookings...</div>
-      ) : null}
 
       {isError ? (
         <div className="text-sm text-destructive">Failed to load bookings.</div>
