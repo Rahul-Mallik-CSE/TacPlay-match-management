@@ -2,25 +2,25 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
-interface Player {
+export interface SessionPlayerCardModel {
   id: number;
+  bookingId: number;
   name: string;
   win: number;
   loses: number;
   played: number;
   rank: number;
   score?: number;
-  image: string;
+  image: string | null;
   team: "A" | "B";
 }
 
 interface PlayerCardProps {
-  player: Player;
-  onViewDetails: (player: Player) => void;
+  player: SessionPlayerCardModel;
+  onViewDetails: (player: SessionPlayerCardModel) => void;
 }
 
 const PlayerCard = ({ player, onViewDetails }: PlayerCardProps) => {
@@ -47,13 +47,7 @@ const PlayerCard = ({ player, onViewDetails }: PlayerCardProps) => {
 
   return (
     <div className="relative">
-      <div
-        className={cn(
-          "relative rounded-3xl p-[1px]  ",
-          frameGradient,
-          cardGlow,
-        )}
-      >
+      <div className={cn("relative rounded-3xl p-px", frameGradient, cardGlow)}>
         <div className="absolute inset-0 opacity-50 blur-3xl" aria-hidden>
           <div
             className={cn(
@@ -77,26 +71,29 @@ const PlayerCard = ({ player, onViewDetails }: PlayerCardProps) => {
                 )}
               />
               <div className={cn("absolute ")} />
-              <Image
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
                 src={"/player-badge.png"}
                 alt="badge"
-                width={40}
-                height={40}
-                className="relative"
+                className="relative w-10 h-10"
               />
             </div>
           </div>
 
           {/* Player image */}
           <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden shrink-0 ring-2 ring-white/10">
-            <Image
-              src={player.image}
-              alt={`${player.name} avatar`}
-              fill
-              sizes="112px"
-              className="object-cover"
-              priority
-            />
+            {player.image ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={player.image}
+                alt={`${player.name} avatar`}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-muted flex items-center justify-center text-secondary text-sm font-semibold">
+                {player.name.charAt(0).toUpperCase()}
+              </div>
+            )}
             <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent" />
           </div>
 
