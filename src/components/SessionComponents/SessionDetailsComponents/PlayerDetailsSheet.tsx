@@ -14,8 +14,14 @@ import {
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useGetOwnerSessionPlayerInfoQuery } from "@/redux/features/sessions/sessionsAPI";
+import {
+  useCheckInOwnerSessionPlayersMutation,
+  useGetOwnerSessionPlayerInfoQuery,
+  useSubmitOwnerSessionResultMutation,
+} from "@/redux/features/sessions/sessionsAPI";
 import PlayerDetailsSheetLoading from "@/components/SessionComponents/SessionDetailsComponents/PlayerDetailsSheetLoading";
+import { toast } from "react-toastify";
+import { getErrorMessage, getSuccessMessage } from "@/lib/auth";
 
 interface PlayerDetailsSheetProps {
   open: boolean;
@@ -53,6 +59,58 @@ const PlayerDetailsSheet: React.FC<PlayerDetailsSheetProps> = ({
 
   const statusOptions = ["Win", "Loss", "Draw"];
   const activeMatchStatus = matchStatus ?? normalizedStatus;
+
+  const [checkInPlayers, { isLoading: isCheckingIn }] =
+    useCheckInOwnerSessionPlayersMutation();
+  const [submitResult, { isLoading: isSubmittingResult }] =
+    useSubmitOwnerSessionResultMutation();
+
+  const handleCheckIn = async () => {
+    if (!sessionId || !details?.booking_id) return;
+
+    try {
+      const response = await checkInPlayers({
+        sessionId,
+        payload: {
+          booking_ids: [details.booking_id],
+        },
+      }).unwrap();
+      toast.success(
+        getSuccessMessage(response, "Player check-in completed successfully."),
+      );
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to check in player."));
+    }
+  };
+
+  const handleSubmitPlayerResult = async () => {
+    if (!sessionId || !details?.booking_id) return;
+
+    const normalized = activeMatchStatus.toLowerCase();
+    if (!["win", "loss", "draw"].includes(normalized)) {
+      toast.error("Please select a valid result before submitting.");
+      return;
+    }
+
+    try {
+      const response = await submitResult({
+        sessionId,
+        payload: {
+          players: [
+            {
+              booking_id: details.booking_id,
+              result: normalized as "win" | "loss" | "draw",
+            },
+          ],
+        },
+      }).unwrap();
+      toast.success(
+        getSuccessMessage(response, "Final result submitted successfully."),
+      );
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to submit player score."));
+    }
+  };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -160,40 +218,57 @@ const PlayerDetailsSheet: React.FC<PlayerDetailsSheetProps> = ({
               </div>
             </div>
 
-            <div className="mt-6">
-              <h3 className="text-lg font-semibold text-primary mb-3">
-                Score Management
-              </h3>
-              <div className="bg-[#0c0a0c] border border-white/5 rounded-2xl p-1.5 flex items-center">
-                {statusOptions.map((status) => (
-                  <button
-                    key={status}
-                    onClick={() => setMatchStatus(status)}
-                    disabled={!scoreManagement?.show_result_selector}
-                    className={cn(
-                      "flex-1 py-2 cursor-pointer text-sm font-semibold rounded-xl transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed",
-                      activeMatchStatus === status
-                        ? "bg-[#e2b83b] text-black shadow-md"
-                        : "text-secondary hover:text-white",
-                    )}
-                  >
-                    {status}
-                  </button>
-                ))}
+            {scoreManagement?.show_result_selector ? (
+              <div className="mt-6">
+                <h3 className="text-lg font-semibold text-primary mb-3">
+                  Score Management
+                </h3>
+                <div className="bg-[#0c0a0c] border border-white/5 rounded-2xl p-1.5 flex items-center">
+                  {statusOptions.map((status) => (
+                    <button
+                      key={status}
+                      onClick={() => setMatchStatus(status)}
+                      className={cn(
+                        "flex-1 py-2 cursor-pointer text-sm font-semibold rounded-xl transition-all duration-200",
+                        activeMatchStatus === status
+                          ? "bg-[#e2b83b] text-black shadow-md"
+                          : "text-secondary hover:text-white",
+                      )}
+                    >
+                      {status}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            ) : null}
           </div>
         ) : null}
 
         {/* Footer */}
-        <SheetFooter className="px-5 pb-5 pt-2 flex justify-center">
-          <Button
-            disabled={!scoreManagement?.show_submit_button}
-            className="py-2.5 rounded-lg bg-custom-red text-white text-sm font-medium hover:bg-custom-red/80 transition-colors disabled:opacity-50"
-          >
-            Score Submit
-          </Button>
-        </SheetFooter>
+        {details ? (
+          <SheetFooter className="px-5 pb-5 pt-2 flex-row gap-3 justify-center">
+            {scoreManagement?.show_check_in_button ? (
+              <Button
+                onClick={handleCheckIn}
+                disabled={isCheckingIn}
+                className="flex-1 py-2.5 rounded-lg bg-custom-yellow text-black text-sm font-medium hover:bg-custom-yellow/80 transition-colors disabled:opacity-50"
+              >
+                {isCheckingIn ? "Checking In..." : "Checked In"}
+              </Button>
+            ) : null}
+
+            {scoreManagement?.show_result_selector &&
+            scoreManagement?.show_submit_button ? (
+              <Button
+                onClick={handleSubmitPlayerResult}
+                disabled={isSubmittingResult}
+                className="flex-1 py-2.5 rounded-lg bg-custom-red text-white text-sm font-medium hover:bg-custom-red/80 transition-colors disabled:opacity-50"
+              >
+                {isSubmittingResult ? "Submitting..." : "Score Submit"}
+              </Button>
+            ) : null}
+          </SheetFooter>
+        ) : null}
       </SheetContent>
     </Sheet>
   );

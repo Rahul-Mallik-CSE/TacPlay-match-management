@@ -2,7 +2,7 @@
 
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
   Sheet,
   SheetContent,
@@ -13,8 +13,16 @@ import {
 } from "@/components/ui/sheet";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useGetOwnerSessionInfoQuery } from "@/redux/features/sessions/sessionsAPI";
+import {
+  useCancelOwnerSessionMatchMutation,
+  useGetOwnerSessionInfoQuery,
+  useStartOwnerSessionMatchMutation,
+  useSubmitOwnerSessionResultMutation,
+} from "@/redux/features/sessions/sessionsAPI";
 import SessionInfoSheetLoading from "@/components/SessionComponents/SessionDetailsComponents/SessionInfoSheetLoading";
+import { toast } from "react-toastify";
+import { getErrorMessage, getSuccessMessage } from "@/lib/auth";
+import { cn } from "@/lib/utils";
 
 interface SessionInfoSheetProps {
   open: boolean;
@@ -27,6 +35,10 @@ const SessionInfoSheet: React.FC<SessionInfoSheetProps> = ({
   onOpenChange,
   sessionId,
 }) => {
+  const [teamAResult, setTeamAResult] = useState<"win" | "loss" | "draw">(
+    "win",
+  );
+
   const { data, isLoading, isFetching, isError } = useGetOwnerSessionInfoQuery(
     sessionId as number,
     {
@@ -34,7 +46,81 @@ const SessionInfoSheet: React.FC<SessionInfoSheetProps> = ({
     },
   );
 
+  const [startMatch, { isLoading: isStartingMatch }] =
+    useStartOwnerSessionMatchMutation();
+  const [cancelMatch, { isLoading: isCancellingMatch }] =
+    useCancelOwnerSessionMatchMutation();
+  const [submitResult, { isLoading: isSubmittingResult }] =
+    useSubmitOwnerSessionResultMutation();
+
   const details = data?.data;
+  const currentStatus = details?.status?.toLowerCase();
+  const isOpenStatus = currentStatus === "open";
+  const isOngoingStatus = currentStatus === "ongoing";
+  const isCompletedOrCancelled =
+    currentStatus === "completed" ||
+    currentStatus === "complete" ||
+    currentStatus === "cancelled" ||
+    currentStatus === "canceled";
+
+  const teamBResult: "win" | "loss" | "draw" =
+    teamAResult === "draw" ? "draw" : teamAResult === "win" ? "loss" : "win";
+
+  const updateFromTeamA = (result: "win" | "loss" | "draw") => {
+    setTeamAResult(result);
+  };
+
+  const updateFromTeamB = (result: "win" | "loss" | "draw") => {
+    if (result === "draw") {
+      setTeamAResult("draw");
+      return;
+    }
+
+    setTeamAResult(result === "win" ? "loss" : "win");
+  };
+
+  const handleStartMatch = async () => {
+    if (!sessionId) return;
+
+    try {
+      const response = await startMatch(sessionId).unwrap();
+      toast.success(getSuccessMessage(response, "Match started successfully."));
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to start match."));
+    }
+  };
+
+  const handleCancelMatch = async () => {
+    if (!sessionId) return;
+
+    try {
+      const response = await cancelMatch(sessionId).unwrap();
+      toast.success(
+        getSuccessMessage(response, "Match cancelled successfully."),
+      );
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to cancel match."));
+    }
+  };
+
+  const handleSubmitTeamResult = async () => {
+    if (!sessionId) return;
+
+    try {
+      const response = await submitResult({
+        sessionId,
+        payload: {
+          team_a_result: teamAResult,
+          team_b_result: teamBResult,
+        },
+      }).unwrap();
+      toast.success(
+        getSuccessMessage(response, "Final result submitted successfully."),
+      );
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to submit final result."));
+    }
+  };
 
   if (!open) return null;
 
@@ -176,26 +262,100 @@ const SessionInfoSheet: React.FC<SessionInfoSheetProps> = ({
           </div>
         ) : null}
 
-        {/* Footer Buttons */}
-        <SheetFooter className="px-5 pb-5 pt-2 flex-row gap-3">
-          <Button
-            disabled={!details?.actions.can_cancel_match}
-            className="flex-1 py-2.5 bg-transparent rounded-lg border border-white/10 text-primary text-sm font-medium hover:bg-white/5 transition-colors disabled:opacity-50"
-          >
-            Match Cancel
-          </Button>
-          <Button
-            disabled={
-              !details?.actions.can_start_match &&
-              !details?.actions.can_submit_final_result
-            }
-            className="flex-1 disabled:opacity-50"
-          >
-            {details?.actions.primary_button ?? "Match Start"}
-          </Button>
-        </SheetFooter>
+        {details && isOngoingStatus ? (
+          <div className="px-5 pt-2 space-y-4">
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-primary">Team Result</p>
+              <div className="grid grid-cols-2 gap-3">
+                <ResultSelector
+                  title={details.team_info.team_a_name}
+                  value={teamAResult}
+                  onChange={updateFromTeamA}
+                />
+                <ResultSelector
+                  title={details.team_info.team_b_name}
+                  value={teamBResult}
+                  onChange={updateFromTeamB}
+                />
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        {details && !isCompletedOrCancelled ? (
+          <SheetFooter className="px-5 pb-5 pt-2 flex-row gap-3">
+            {isOpenStatus ? (
+              <>
+                <Button
+                  onClick={handleCancelMatch}
+                  disabled={
+                    !details.actions.can_cancel_match || isCancellingMatch
+                  }
+                  className="flex-1 py-2.5 bg-transparent rounded-lg border border-white/10 text-primary text-sm font-medium hover:bg-white/5 transition-colors disabled:opacity-50"
+                >
+                  {isCancellingMatch ? "Cancelling..." : "Match Cancel"}
+                </Button>
+                <Button
+                  onClick={handleStartMatch}
+                  disabled={!details.actions.can_start_match || isStartingMatch}
+                  className="flex-1 disabled:opacity-50"
+                >
+                  {isStartingMatch
+                    ? "Starting..."
+                    : (details.actions.primary_button ?? "Match Start")}
+                </Button>
+              </>
+            ) : null}
+
+            {isOngoingStatus ? (
+              <Button
+                onClick={handleSubmitTeamResult}
+                disabled={
+                  !details.actions.can_submit_final_result || isSubmittingResult
+                }
+                className="w-full disabled:opacity-50"
+              >
+                {isSubmittingResult ? "Submitting..." : "Submit Final Result"}
+              </Button>
+            ) : null}
+          </SheetFooter>
+        ) : null}
       </SheetContent>
     </Sheet>
+  );
+};
+
+const ResultSelector = ({
+  title,
+  value,
+  onChange,
+}: {
+  title: string;
+  value: "win" | "loss" | "draw";
+  onChange: (value: "win" | "loss" | "draw") => void;
+}) => {
+  const options: Array<"win" | "loss" | "draw"> = ["win", "loss", "draw"];
+
+  return (
+    <div className="bg-[#0c0a0c] border border-white/5 rounded-xl p-2 space-y-2">
+      <p className="text-xs text-secondary">{title}</p>
+      <div className="flex gap-1">
+        {options.map((option) => (
+          <button
+            key={`${title}-${option}`}
+            onClick={() => onChange(option)}
+            className={cn(
+              "flex-1 py-1.5 cursor-pointer text-xs font-semibold rounded-md transition-all",
+              value === option
+                ? "bg-[#e2b83b] text-black shadow-md"
+                : "text-secondary hover:text-white",
+            )}
+          >
+            {option.charAt(0).toUpperCase() + option.slice(1)}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 };
 

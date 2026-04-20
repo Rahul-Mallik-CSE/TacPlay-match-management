@@ -212,3 +212,61 @@ export type SessionPlayerInfoResponse = {
   };
   requestId: string;
 };
+
+export type SessionActionResponse = {
+  success: boolean;
+  message: string;
+  meta: Record<string, unknown>;
+  data: {
+    id: number;
+    status: string;
+    status_display: string;
+  };
+  requestId: string;
+};
+
+export type SessionSubmitResultPayload =
+  | {
+      team_a_result: "win" | "loss" | "draw";
+      team_b_result: "win" | "loss" | "draw";
+    }
+  | {
+      players: Array<{
+        booking_id: number;
+        result: "win" | "loss" | "draw";
+      }>;
+    };
+
+export type SessionSubmitResultResponse = {
+  success: boolean;
+  message: string;
+  meta: Record<string, unknown>;
+  data: {
+    id: number;
+    status: string;
+    status_display: string;
+    team_a_score?: number;
+    team_b_score?: number;
+    champion?: string | null;
+  };
+  requestId: string;
+};
+
+export type SessionCheckInPayload = {
+  booking_ids: number[];
+};
+
+export type SessionCheckInResponse = {
+  success: boolean;
+  message: string;
+  meta: Record<string, unknown>;
+  data: {
+    id: number;
+    status: string;
+    status_display: string;
+    checked_in_count: number;
+    total_player_count: number;
+    checked_in_display: string;
+  };
+  requestId: string;
+};

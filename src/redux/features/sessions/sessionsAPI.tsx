@@ -2,8 +2,13 @@
 
 import baseAPI from "@/redux/api/baseAPI";
 import type {
+  SessionActionResponse,
+  SessionCheckInPayload,
+  SessionCheckInResponse,
   SessionDetailsResponse,
   SessionInfoResponse,
+  SessionSubmitResultPayload,
+  SessionSubmitResultResponse,
   SessionPlayerInfoResponse,
   SessionsListQuery,
   SessionsListResponse,
@@ -48,6 +53,42 @@ const sessionsAPI = baseAPI.injectEndpoints({
       }),
       providesTags: ["Sessions"],
     }),
+    startOwnerSessionMatch: builder.mutation<SessionActionResponse, number>({
+      query: (sessionId) => ({
+        url: `/api/session/owner/sessions/${sessionId}/start/`,
+        method: "POST",
+      }),
+      invalidatesTags: ["Sessions"],
+    }),
+    cancelOwnerSessionMatch: builder.mutation<SessionActionResponse, number>({
+      query: (sessionId) => ({
+        url: `/api/session/owner/sessions/${sessionId}/cancel/`,
+        method: "POST",
+      }),
+      invalidatesTags: ["Sessions"],
+    }),
+    submitOwnerSessionResult: builder.mutation<
+      SessionSubmitResultResponse,
+      { sessionId: number; payload: SessionSubmitResultPayload }
+    >({
+      query: ({ sessionId, payload }) => ({
+        url: `/api/session/owner/sessions/${sessionId}/submit-result/`,
+        method: "POST",
+        body: payload,
+      }),
+      invalidatesTags: ["Sessions"],
+    }),
+    checkInOwnerSessionPlayers: builder.mutation<
+      SessionCheckInResponse,
+      { sessionId: number; payload: SessionCheckInPayload }
+    >({
+      query: ({ sessionId, payload }) => ({
+        url: `/api/session/owner/sessions/${sessionId}/check-in/`,
+        method: "POST",
+        body: payload,
+      }),
+      invalidatesTags: ["Sessions"],
+    }),
   }),
 });
 
@@ -56,6 +97,10 @@ export const {
   useGetOwnerSessionDetailsQuery,
   useGetOwnerSessionInfoQuery,
   useGetOwnerSessionPlayerInfoQuery,
+  useStartOwnerSessionMatchMutation,
+  useCancelOwnerSessionMatchMutation,
+  useSubmitOwnerSessionResultMutation,
+  useCheckInOwnerSessionPlayersMutation,
 } = sessionsAPI;
 
 export default sessionsAPI;
