@@ -14,6 +14,7 @@ import StatsCard from "@/components/DashboardComponents/StatsCard";
 import RevenueChart from "@/components/DashboardComponents/RevenewChart";
 import SessionPieChart from "@/components/DashboardComponents/SessionPieChart";
 import BookingBarChart from "@/components/DashboardComponents/BookingBarChart";
+import DashboardLoading from "@/components/DashboardComponents/DashboardLoading";
 import { useGetDashboardOverviewQuery } from "@/redux/features/dashboard/dashboardAPI";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { setDashboardRange } from "@/redux/features/dashboard/dashboardSlice";
@@ -48,6 +49,12 @@ export default function Home() {
   );
   const visibleRanges =
     revenueRanges.length > 0 ? revenueRanges : RANGE_OPTIONS;
+
+  const showLoadingState = (isLoading || isFetching) && !payload;
+
+  if (showLoadingState) {
+    return <DashboardLoading />;
+  }
 
   return (
     <div className="w-full p-3 md:p-4">
@@ -84,12 +91,6 @@ export default function Home() {
             </div>
           </div>
         </div>
-
-        {isLoading || isFetching ? (
-          <div className="text-sm text-muted-foreground">
-            Loading dashboard...
-          </div>
-        ) : null}
 
         {isError ? (
           <div className="text-sm text-destructive">
