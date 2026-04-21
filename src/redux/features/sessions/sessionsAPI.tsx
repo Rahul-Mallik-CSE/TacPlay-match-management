@@ -65,7 +65,7 @@ const sessionsAPI = baseAPI.injectEndpoints({
     cancelOwnerSessionMatch: builder.mutation<SessionActionResponse, number>({
       query: (sessionId) => ({
         url: `/api/session/owner/sessions/${sessionId}/cancel/`,
-        method: "POST",
+        method: "PATCH",
       }),
       invalidatesTags: ["Sessions"],
     }),

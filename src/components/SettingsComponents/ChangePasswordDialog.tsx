@@ -12,6 +12,9 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "../ui/button";
+import { useChangeFieldOwnerPasswordMutation } from "@/redux/features/settings/settingsAPI";
+import { toast } from "react-toastify";
+import { getErrorMessage, getSuccessMessage } from "@/lib/auth";
 
 interface ChangePasswordDialogProps {
   open: boolean;
@@ -29,8 +32,22 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState("");
+  const [changePassword, { isLoading: isChangingPassword }] =
+    useChangeFieldOwnerPasswordMutation();
 
-  const handleSubmit = () => {
+  const resetForm = () => {
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+    setError("");
+    setShowCurrent(false);
+    setShowNew(false);
+    setShowConfirm(false);
+  };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
     if (!currentPassword || !newPassword || !confirmPassword) {
       setError("All fields are required.");
       return;
@@ -43,11 +60,26 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
       setError("Passwords do not match.");
       return;
     }
+
     setError("");
-    onOpenChange(false);
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
+
+    try {
+      const response = await changePassword({
+        current_password: currentPassword,
+        new_password: newPassword,
+        confirm_password: confirmPassword,
+      }).unwrap();
+
+      toast.success(
+        getSuccessMessage(response, "Password changed successfully."),
+      );
+      onOpenChange(false);
+      resetForm();
+    } catch (apiError) {
+      const message = getErrorMessage(apiError, "Failed to change password.");
+      setError(message);
+      toast.error(message);
+    }
   };
 
   return (
@@ -65,7 +97,7 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col gap-4 mt-2">
+        <form className="flex flex-col gap-4 mt-2" onSubmit={handleSubmit}>
           {/* Current Password */}
           <div className="space-y-2">
             <label className="text-sm text-secondary">Current Password</label>
@@ -154,12 +186,13 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
 
           {/* Submit Button */}
           <Button
-            onClick={handleSubmit}
+            type="submit"
+            disabled={isChangingPassword}
             className="w-full py-2.5 rounded-lg bg-custom-red text-white text-sm font-medium hover:bg-custom-red/80 transition-colors mt-1"
           >
-            Change Password
+            {isChangingPassword ? "Changing..." : "Change Password"}
           </Button>
-        </div>
+        </form>
       </DialogContent>
     </Dialog>
   );

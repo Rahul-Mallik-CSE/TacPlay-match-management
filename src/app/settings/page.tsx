@@ -7,11 +7,30 @@ import { Eye, EyeOff, Pen } from "lucide-react";
 import EditAccountDialog from "@/components/SettingsComponents/EditAccountDialog";
 import ChangePasswordDialog from "@/components/SettingsComponents/ChangePasswordDialog";
 import { Button } from "@/components/ui/button";
+import { useGetFieldOwnerProfileQuery } from "@/redux/features/settings/settingsAPI";
+import { toAbsoluteMediaUrl } from "@/lib/utils";
+
+const getInitials = (fullName?: string) => {
+  if (!fullName) return "U";
+
+  const parts = fullName.trim().split(/\s+/).filter(Boolean);
+
+  return parts
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+};
 
 const SettingsPage = () => {
   const [editOpen, setEditOpen] = useState(false);
   const [passwordOpen, setPasswordOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  const { data, isLoading, isFetching, isError } =
+    useGetFieldOwnerProfileQuery();
+  const profile = data?.data;
+  const profileImageUrl = toAbsoluteMediaUrl(profile?.profile_image);
+  const initials = getInitials(profile?.full_name);
 
   return (
     <div className="w-full p-3 md:p-4">
@@ -31,17 +50,36 @@ const SettingsPage = () => {
           {/* Avatar & Name */}
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-linear-to-br from-custom-red/30 to-custom-yellow/30 flex items-center justify-center shrink-0">
-              <span className="text-xl sm:text-2xl font-bold text-primary">
-                JS
-              </span>
+              {profileImageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={profileImageUrl}
+                  alt="Profile"
+                  className="w-full h-full object-cover rounded-full"
+                />
+              ) : (
+                <span className="text-xl sm:text-2xl font-bold text-primary">
+                  {initials}
+                </span>
+              )}
             </div>
             <div>
               <h2 className="text-lg sm:text-xl font-semibold text-primary">
-                John Smith
+                {profile?.full_name || "-"}
               </h2>
               <p className="text-sm text-secondary">Arena Owner</p>
             </div>
           </div>
+
+          {isLoading || isFetching ? (
+            <div className="text-sm text-secondary">Loading profile...</div>
+          ) : null}
+
+          {isError ? (
+            <div className="text-sm text-destructive">
+              Failed to load profile information.
+            </div>
+          ) : null}
 
           {/* Personal Information */}
           <div>
@@ -56,7 +94,7 @@ const SettingsPage = () => {
                 <input
                   type="text"
                   readOnly
-                  value="John Smith"
+                  value={profile?.full_name || ""}
                   className="w-full px-4 py-2.5 rounded-lg bg-muted border border-white/10 text-sm text-primary cursor-default focus:outline-none"
                 />
               </div>
@@ -67,7 +105,7 @@ const SettingsPage = () => {
                 <input
                   type="email"
                   readOnly
-                  value="johnsmith@gmail.com"
+                  value={profile?.email_address || ""}
                   className="w-full px-4 py-2.5 rounded-lg bg-muted border border-white/10 text-sm text-primary cursor-default focus:outline-none"
                 />
               </div>
@@ -79,10 +117,11 @@ const SettingsPage = () => {
                   <input
                     type={showPassword ? "text" : "password"}
                     readOnly
-                    value="password123"
+                    value={profile?.password || "********"}
                     className="w-full px-4 py-2.5 pr-10 rounded-lg bg-muted border border-white/10 text-sm text-primary cursor-default focus:outline-none"
                   />
                   <button
+                    type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary hover:text-primary transition-colors"
                   >
@@ -99,9 +138,9 @@ const SettingsPage = () => {
               <div className="space-y-2">
                 <label className="text-sm text-secondary">Contact Number</label>
                 <input
-                  type="tel"
+                  type="number"
                   readOnly
-                  value="+880 25614 24536"
+                  value={profile?.contact_number || ""}
                   className="w-full px-4 py-2.5 rounded-lg bg-muted border border-white/10 text-sm text-primary cursor-default focus:outline-none"
                 />
               </div>
@@ -127,7 +166,12 @@ const SettingsPage = () => {
         </div>
 
         {/* Dialogs */}
-        <EditAccountDialog open={editOpen} onOpenChange={setEditOpen} />
+        <EditAccountDialog
+          key={`${profile?.id ?? "profile"}-${editOpen ? "open" : "closed"}`}
+          open={editOpen}
+          onOpenChange={setEditOpen}
+          profile={profile ?? null}
+        />
         <ChangePasswordDialog
           open={passwordOpen}
           onOpenChange={setPasswordOpen}

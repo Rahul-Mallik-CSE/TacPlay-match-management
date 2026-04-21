@@ -8,6 +8,7 @@ import dashboardReducer from "@/redux/features/dashboard/dashboardSlice";
 import earningsReducer from "@/redux/features/earnings/earningsSlice";
 import arenaManagementReducer from "@/redux/features/arenaManagement/arenaManagementSlice";
 import sessionsReducer from "@/redux/features/sessions/sessionsSlice";
+import settingsReducer from "@/redux/features/settings/settingsSlice";
 
 export const store = configureStore({
   reducer: {
@@ -18,6 +19,7 @@ export const store = configureStore({
     earnings: earningsReducer,
     arenaManagement: arenaManagementReducer,
     sessions: sessionsReducer,
+    settings: settingsReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(baseAPI.middleware),

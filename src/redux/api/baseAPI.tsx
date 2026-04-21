@@ -106,6 +106,7 @@ const baseAPI = createApi({
     "Earnings",
     "BookingList",
     "Sessions",
+    "Settings",
   ],
   endpoints: () => ({}),
 });
