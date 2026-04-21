@@ -5,9 +5,11 @@
 import React, { useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
+  Calendar,
   ChevronDown,
   Upload,
   Clock,
+  Clock3,
   CheckCircle2,
   FileImage,
 } from "lucide-react";
@@ -127,6 +129,28 @@ const CreateSessionPage = () => {
 
   const teamARef = useRef<HTMLInputElement>(null);
   const teamBRef = useRef<HTMLInputElement>(null);
+  const matchDateRef = useRef<HTMLInputElement>(null);
+  const startTimeRef = useRef<HTMLInputElement>(null);
+  const endTimeRef = useRef<HTMLInputElement>(null);
+
+  const openNativePicker = (
+    inputRef: React.RefObject<HTMLInputElement | null>,
+  ) => {
+    const input = inputRef.current;
+    if (!input) return;
+
+    const pickerInput = input as HTMLInputElement & {
+      showPicker?: () => void;
+    };
+
+    if (typeof pickerInput.showPicker === "function") {
+      pickerInput.showPicker();
+      return;
+    }
+
+    input.focus();
+    input.click();
+  };
 
   const durationDisplay = useMemo(() => {
     const start = convertToMinutes(form.start_time);
@@ -365,39 +389,72 @@ const CreateSessionPage = () => {
 
             {/* Match Date */}
             <FormField label="Match Date">
-              <input
-                type="date"
-                className="form-input-style"
-                value={form.match_date}
-                onChange={(event) =>
-                  handleFieldChange("match_date", event.target.value)
-                }
-              />
+              <div className="relative">
+                <input
+                  ref={matchDateRef}
+                  type="date"
+                  className="form-input-style pr-10"
+                  value={form.match_date}
+                  onChange={(event) =>
+                    handleFieldChange("match_date", event.target.value)
+                  }
+                />
+                <button
+                  type="button"
+                  aria-label="Open date picker"
+                  onClick={() => openNativePicker(matchDateRef)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary hover:text-primary transition-colors"
+                >
+                  <Calendar className="w-4 h-4" />
+                </button>
+              </div>
             </FormField>
 
             {/* Start & End Time */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField label="Start Time">
-                <input
-                  type="time"
-                  step={60}
-                  className="form-input-style"
-                  value={form.start_time}
-                  onChange={(event) =>
-                    handleFieldChange("start_time", event.target.value)
-                  }
-                />
+                <div className="relative">
+                  <input
+                    ref={startTimeRef}
+                    type="time"
+                    step={60}
+                    className="form-input-style pr-10"
+                    value={form.start_time}
+                    onChange={(event) =>
+                      handleFieldChange("start_time", event.target.value)
+                    }
+                  />
+                  <button
+                    type="button"
+                    aria-label="Open start time picker"
+                    onClick={() => openNativePicker(startTimeRef)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary hover:text-primary transition-colors"
+                  >
+                    <Clock3 className="w-4 h-4" />
+                  </button>
+                </div>
               </FormField>
               <FormField label="End Time">
-                <input
-                  type="time"
-                  step={60}
-                  className="form-input-style"
-                  value={form.end_time}
-                  onChange={(event) =>
-                    handleFieldChange("end_time", event.target.value)
-                  }
-                />
+                <div className="relative">
+                  <input
+                    ref={endTimeRef}
+                    type="time"
+                    step={60}
+                    className="form-input-style pr-10"
+                    value={form.end_time}
+                    onChange={(event) =>
+                      handleFieldChange("end_time", event.target.value)
+                    }
+                  />
+                  <button
+                    type="button"
+                    aria-label="Open end time picker"
+                    onClick={() => openNativePicker(endTimeRef)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary hover:text-primary transition-colors"
+                  >
+                    <Clock3 className="w-4 h-4" />
+                  </button>
+                </div>
               </FormField>
             </div>
 
@@ -668,6 +725,15 @@ const CreateSessionPage = () => {
         }
         .form-input-style:focus {
           border-color: rgba(152, 0, 9, 0.5);
+        }
+        .form-input-style[type="date"],
+        .form-input-style[type="time"] {
+          color-scheme: dark;
+        }
+        .form-input-style[type="date"]::-webkit-calendar-picker-indicator,
+        .form-input-style[type="time"]::-webkit-calendar-picker-indicator {
+          opacity: 0;
+          cursor: pointer;
         }
       `}</style>
     </div>
