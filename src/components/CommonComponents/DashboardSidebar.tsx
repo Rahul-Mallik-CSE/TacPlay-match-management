@@ -26,12 +26,14 @@ import { GrUserManager } from "react-icons/gr";
 import { useLogoutMutation } from "@/redux/features/auth/authAPI";
 import { useAppDispatch } from "@/redux/hooks";
 import { clearAuthSession } from "@/redux/features/auth/authSlice";
+import { useEffect } from "react";
 import {
   clearAuthTokens,
   getErrorMessage,
   getSuccessMessage,
 } from "@/lib/auth";
 import { toast } from "react-toastify";
+import { useGetFieldOwnerSubscriptionStatusQuery } from "@/redux/features/subscriptions/subscriptionsAPI";
 
 export default function DashboardSidebar() {
   const { state } = useSidebar();
@@ -41,8 +43,17 @@ export default function DashboardSidebar() {
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [logout] = useLogoutMutation();
+  const { data: subscriptionStatus } =
+    useGetFieldOwnerSubscriptionStatusQuery(undefined);
 
   const isCollapsed = state === "collapsed";
+  const currentSubscription = subscriptionStatus?.data;
+
+  useEffect(() => {
+    if (currentSubscription?.show_upgrade_popup) {
+      setIsUpgradeModalOpen(true);
+    }
+  }, [currentSubscription?.show_upgrade_popup]);
 
   const navItems = [
     {
@@ -206,14 +217,23 @@ export default function DashboardSidebar() {
                 </div>
                 <div>
                   <p className="text-primary text-sm font-semibold leading-snug mb-0.5">
-                    Upgrade to Silver for more Features
+                    {currentSubscription?.has_active_subscription
+                      ? `Current plan: ${currentSubscription.plan_name ?? "Active"}`
+                      : "Upgrade to Silver for more Features"}
+                  </p>
+                  <p className="text-secondary text-xs mb-2">
+                    {currentSubscription?.has_active_subscription
+                      ? `${currentSubscription.days_left ?? 0} days left • ${currentSubscription.status}`
+                      : "Unlock ranked hosting, analytics, and premium tools."}
                   </p>
                   <Button
                     onClick={() => setIsUpgradeModalOpen(true)}
                     className="w-full flex items-center justify-center gap-2 bg-linear-to-r from-[#980009] via-[#C00069] to-[#980009] text-white font-bold py-2.5 rounded-xl text-sm hover:opacity-90 transition-opacity shadow-[0_0_10px_rgba(192,0,105,0.4)]"
                   >
                     <Crown size={15} className="text-[#cdba20]" />
-                    Upgrade
+                    {currentSubscription?.has_active_subscription
+                      ? "Manage"
+                      : "Upgrade"}
                   </Button>
                 </div>
               </div>
