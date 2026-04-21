@@ -1,8 +1,7 @@
 /** @format */
 "use client";
 
-import { Bell, ChevronDown } from "lucide-react";
-import Image from "next/image";
+import { ChevronDown } from "lucide-react";
 
 import {
   DropdownMenu,
@@ -12,18 +11,84 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { UserCog, LogOut } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import LogoutModal from "./LogOutModal";
 import { SidebarTrigger } from "../ui/sidebar";
-import { clearAuthTokens } from "@/lib/auth";
-import { useAppDispatch } from "@/redux/hooks";
+import { clearAuthTokens, type PersistedAuthUser } from "@/lib/auth";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { clearAuthSession } from "@/redux/features/auth/authSlice";
+import { toAbsoluteMediaUrl } from "@/lib/utils";
+
+const noOpSubscribe = () => () => undefined;
+
+const AUTH_USER_COOKIE_NAME = "tpAuthUser";
+
+const getAuthUserCookieSnapshot = () => {
+  if (typeof document === "undefined") {
+    return null;
+  }
+
+  const nameWithEquals = `${AUTH_USER_COOKIE_NAME}=`;
+  const cookies = document.cookie.split(";");
+
+  for (const cookie of cookies) {
+    const trimmedCookie = cookie.trim();
+    if (trimmedCookie.startsWith(nameWithEquals)) {
+      return decodeURIComponent(trimmedCookie.substring(nameWithEquals.length));
+    }
+  }
+
+  return null;
+};
+
+const getInitials = (name?: string) => {
+  if (!name) return "U";
+
+  return name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+};
 
 const NavBar = () => {
   const pathname = usePathname();
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const reduxUser = useAppSelector((state) => state.auth.user);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+
+  const cookieUserSnapshot = useSyncExternalStore<string | null>(
+    noOpSubscribe,
+    getAuthUserCookieSnapshot,
+    () => null,
+  );
+
+  const cookieUser = useMemo<PersistedAuthUser | null>(() => {
+    if (!cookieUserSnapshot) return null;
+
+    try {
+      return JSON.parse(cookieUserSnapshot) as PersistedAuthUser;
+    } catch {
+      return null;
+    }
+  }, [cookieUserSnapshot]);
+
+  const isHydrating = useSyncExternalStore<boolean>(
+    noOpSubscribe,
+    () => false,
+    () => true,
+  );
+
+  const displayUser = useMemo(
+    () => reduxUser ?? cookieUser,
+    [reduxUser, cookieUser],
+  );
+
+  const displayName = displayUser?.full_name?.trim() || "User";
+  const displayImage = toAbsoluteMediaUrl(displayUser?.profile_image);
 
   const handleLogout = async () => {
     setIsLogoutModalOpen(false);
@@ -58,31 +123,35 @@ const NavBar = () => {
           </h1>
         </div>
 
-        {/* Right side - Notification, Profile */}
+        {/* Right side - Profile */}
         <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
-          {/* Notification Bell */}
-          <button
-            onClick={() => router.push("/notifications")}
-            className="cursor-pointer text-secondary hover:text-primary border border-secondary  hover:border-primary relative p-1.5 sm:p-2  rounded-full transition-colors shrink-0"
-          >
-            <Bell className="w-4 h-4 sm:w-5 sm:h-5 " />
-            <span className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 w-2 h-2 bg-[#E1BD25] rounded-full"></span>
-          </button>
-
           {/* Profile Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger className="flex cursor-pointer border border-transparent hover:border-secondary items-center gap-1 sm:gap-2  rounded-lg px-1 sm:px-2 py-1 transition-colors shrink-0">
               <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-red-800 flex items-center justify-center overflow-hidden shrink-0">
-                <Image
-                  src="/logo.png"
-                  alt="Profile"
-                  width={40}
-                  height={40}
-                  className="object-cover"
-                />
+                {isHydrating ? (
+                  <div className="w-full h-full animate-pulse bg-muted" />
+                ) : displayImage ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={displayImage}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-xs sm:text-sm font-semibold text-primary">
+                    {getInitials(displayName)}
+                  </span>
+                )}
               </div>
               <div className="text-left hidden sm:block">
-                <p className="text-sm font-medium text-primary">Moni Roy</p>
+                {isHydrating ? (
+                  <div className="h-4 w-24 rounded bg-muted animate-pulse" />
+                ) : (
+                  <p className="text-sm font-medium text-primary">
+                    {displayName}
+                  </p>
+                )}
               </div>
               <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-primary hidden sm:block" />
             </DropdownMenuTrigger>
@@ -90,7 +159,10 @@ const NavBar = () => {
               align="end"
               className="w-56 mt-2 border border-secondary bg-background rounded-lg shadow-lg"
             >
-              <DropdownMenuItem className="flex items-center gap-3 px-4 py-3 cursor-pointer">
+              <DropdownMenuItem
+                onClick={() => router.push("/settings")}
+                className="flex items-center gap-3 px-4 py-3 cursor-pointer"
+              >
                 <UserCog className="w-5 h-5 text-blue-500" />
                 <span className="text-base">Setting</span>
               </DropdownMenuItem>

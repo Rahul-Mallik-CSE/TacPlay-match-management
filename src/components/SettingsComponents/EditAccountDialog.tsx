@@ -16,7 +16,7 @@ import { useUpdateFieldOwnerProfileMutation } from "@/redux/features/settings/se
 import type { FieldOwnerProfile } from "@/types/SettingTypes";
 import { toAbsoluteMediaUrl } from "@/lib/utils";
 import { toast } from "react-toastify";
-import { getErrorMessage, getSuccessMessage } from "@/lib/auth";
+import { getErrorMessage, getSuccessMessage, saveAuthUser } from "@/lib/auth";
 
 interface EditAccountDialogProps {
   open: boolean;
@@ -76,6 +76,9 @@ const EditAccountDialog: React.FC<EditAccountDialogProps> = ({
 
     try {
       const response = await updateProfile(payload).unwrap();
+      if (response?.data) {
+        saveAuthUser(response.data);
+      }
       toast.success(
         getSuccessMessage(response, "Profile updated successfully."),
       );

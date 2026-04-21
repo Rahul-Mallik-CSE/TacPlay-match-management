@@ -11,7 +11,12 @@ import { toast } from "react-toastify";
 import { useResetPasswordMutation } from "@/redux/features/auth/authAPI";
 import { useAppDispatch } from "@/redux/hooks";
 import { setAuthSession } from "@/redux/features/auth/authSlice";
-import { getErrorMessage, getSuccessMessage, saveAuthTokens } from "@/lib/auth";
+import {
+  getErrorMessage,
+  getSuccessMessage,
+  saveAuthTokens,
+  saveAuthUser,
+} from "@/lib/auth";
 
 const ResetPasswordPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -45,6 +50,7 @@ const ResetPasswordPage = () => {
       }
 
       saveAuthTokens(response.accessToken, response.refreshToken);
+      saveAuthUser(response.user);
       dispatch(setAuthSession(response.user));
 
       toast.success(getSuccessMessage(response, "Password reset successfully"));

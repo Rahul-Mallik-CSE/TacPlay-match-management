@@ -17,7 +17,12 @@ import {
   clearPendingVerification,
   setAuthSession,
 } from "@/redux/features/auth/authSlice";
-import { getErrorMessage, getSuccessMessage, saveAuthTokens } from "@/lib/auth";
+import {
+  getErrorMessage,
+  getSuccessMessage,
+  saveAuthTokens,
+  saveAuthUser,
+} from "@/lib/auth";
 
 const VerifyOtpPage = () => {
   const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
@@ -114,6 +119,7 @@ const VerifyOtpPage = () => {
         }
 
         saveAuthTokens(response.accessToken, response.refreshToken);
+        saveAuthUser(response.user);
         dispatch(setAuthSession(response.user));
         dispatch(clearPendingVerification());
         toast.success(getSuccessMessage(response, "OTP verified"));

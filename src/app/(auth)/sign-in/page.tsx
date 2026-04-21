@@ -12,7 +12,7 @@ import { toast } from "react-toastify";
 import { useLoginFieldOwnerMutation } from "@/redux/features/auth/authAPI";
 import { useAppDispatch } from "@/redux/hooks";
 import { setAuthSession } from "@/redux/features/auth/authSlice";
-import { getErrorMessage, saveAuthTokens } from "@/lib/auth";
+import { getErrorMessage, saveAuthTokens, saveAuthUser } from "@/lib/auth";
 
 function safeReturnPath(from: string | null): string | null {
   if (!from) return null;
@@ -52,6 +52,7 @@ const SignInPageInner = () => {
       }
 
       saveAuthTokens(tokens.access, tokens.refresh);
+      saveAuthUser(user);
       dispatch(setAuthSession(user));
 
       const returnTo =
@@ -174,7 +175,7 @@ export default function SignInPage() {
     <Suspense
       fallback={
         <AuthBanner>
-          <div className="flex min-h-[240px] items-center justify-center text-sm text-muted-foreground">
+          <div className="flex min-h-60 items-center justify-center text-sm text-muted-foreground">
             Loading…
           </div>
         </AuthBanner>

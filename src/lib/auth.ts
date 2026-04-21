@@ -8,7 +8,17 @@ type JwtPayload = {
 
 export const ACCESS_TOKEN_COOKIE = "accessToken";
 export const REFRESH_TOKEN_COOKIE = "refreshToken";
+export const AUTH_USER_COOKIE = "tpAuthUser";
 export const COOKIE_PATH = "/";
+
+export type PersistedAuthUser = {
+  id?: number;
+  email?: string;
+  full_name?: string;
+  profile_image?: string | null;
+  account_type?: string;
+  role?: string;
+};
 
 const isBrowser = typeof window !== "undefined";
 
@@ -88,6 +98,35 @@ export const saveAuthTokens = (accessToken: string, refreshToken: string) => {
 export const clearAuthTokens = () => {
   clearCookie(ACCESS_TOKEN_COOKIE);
   clearCookie(REFRESH_TOKEN_COOKIE);
+  clearCookie(AUTH_USER_COOKIE);
+};
+
+export const saveAuthUser = (
+  user: PersistedAuthUser,
+  maxAgeSeconds?: number,
+) => {
+  const accessToken = getAccessToken();
+  const resolvedMaxAge =
+    typeof maxAgeSeconds === "number"
+      ? maxAgeSeconds
+      : accessToken
+        ? getTokenMaxAge(accessToken)
+        : undefined;
+
+  setCookie(AUTH_USER_COOKIE, JSON.stringify(user), resolvedMaxAge);
+};
+
+export const getAuthUser = (): PersistedAuthUser | null => {
+  const rawValue = getCookieValue(AUTH_USER_COOKIE);
+  if (!rawValue) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(rawValue) as PersistedAuthUser;
+  } catch {
+    return null;
+  }
 };
 
 export const getAccessToken = () => getCookieValue(ACCESS_TOKEN_COOKIE);
