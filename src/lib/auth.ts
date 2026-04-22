@@ -18,6 +18,7 @@ export type PersistedAuthUser = {
   profile_image?: string | null;
   account_type?: string;
   role?: string;
+  arena_info_saved?: boolean;
 };
 
 const isBrowser = typeof window !== "undefined";

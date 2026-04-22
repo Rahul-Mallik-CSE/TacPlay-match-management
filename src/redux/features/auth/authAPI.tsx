@@ -9,6 +9,7 @@ export type AuthUser = {
   profile_image?: string | null;
   account_type?: string;
   role?: string;
+  arena_info_saved?: boolean;
 };
 
 export type SignupRequest = {
