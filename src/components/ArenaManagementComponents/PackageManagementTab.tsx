@@ -2,14 +2,12 @@
 
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, Loader2, Pen, Plus, Save, X } from "lucide-react";
+import React, { useMemo, useState } from "react";
+import { Loader2, Pen, Plus, Save, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
 import {
   useEditPackageManagementMutation,
   useGetPackageManagementQuery,
@@ -25,22 +23,6 @@ type PackageForm = {
   include_items: string[];
   is_active: boolean;
 };
-
-const DEFAULT_INCLUDE_OPTIONS = [
-  "Mask",
-  "Gun",
-  "Vest",
-  "100 Paintballs",
-  "300 Paintballs",
-  "500 Paintballs",
-  "1000 Paintballs",
-  "Gloves",
-  "Overalls",
-  "Beverages",
-  "Snacks",
-  "BBQ",
-  "Birthday Cake",
-];
 
 const EMPTY_PACKAGE: PackageForm = {
   package_name: "",
@@ -60,8 +42,9 @@ const PackageManagementTab = () => {
   const [draftPackages, setDraftPackages] = useState<PackageForm[] | null>(
     null,
   );
-  const [openDropdown, setOpenDropdown] = useState<number | null>(null);
-  const dropdownRefs = useRef<Record<number, HTMLDivElement | null>>({});
+  const [includeItemInputs, setIncludeItemInputs] = useState<
+    Record<number, string>
+  >({});
 
   const basePackages = useMemo(
     () =>
@@ -78,26 +61,10 @@ const PackageManagementTab = () => {
 
   const packages = isEditing ? (draftPackages ?? basePackages) : basePackages;
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (openDropdown === null) return;
-      const ref = dropdownRefs.current[openDropdown];
-      if (!ref || ref.contains(event.target as Node)) return;
-      setOpenDropdown(null);
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [openDropdown]);
-
-  const includeOptions = useMemo(() => {
-    const dynamicItems = packages.flatMap((pkg) => pkg.include_items);
-    return Array.from(new Set([...DEFAULT_INCLUDE_OPTIONS, ...dynamicItems]));
-  }, [packages]);
-
   const handleToggleEdit = () => {
     if (isEditing) {
       setDraftPackages(null);
+      setIncludeItemInputs({});
       setIsEditing(false);
       return;
     }
@@ -125,6 +92,7 @@ const PackageManagementTab = () => {
       );
 
       setDraftPackages(null);
+      setIncludeItemInputs({});
       setIsEditing(false);
     } catch (error) {
       toast.error(
@@ -156,22 +124,37 @@ const PackageManagementTab = () => {
     );
   };
 
-  const toggleItem = (index: number, value: string) => {
+  const addItem = (index: number, rawValue: string) => {
+    const value = rawValue.trim();
+    if (!value) return;
+
     setDraftPackages((previous) =>
       previous
         ? previous.map((pkg, pkgIndex) => {
             if (pkgIndex !== index) return pkg;
 
             const exists = pkg.include_items.includes(value);
+            if (exists) return pkg;
+
             return {
               ...pkg,
-              include_items: exists
-                ? pkg.include_items.filter((item) => item !== value)
-                : [...pkg.include_items, value],
+              include_items: [...pkg.include_items, value],
             };
           })
         : previous,
     );
+
+    setIncludeItemInputs((previous) => ({
+      ...previous,
+      [index]: "",
+    }));
+  };
+
+  const setIncludeItemInput = (index: number, value: string) => {
+    setIncludeItemInputs((previous) => ({
+      ...previous,
+      [index]: value,
+    }));
   };
 
   const removeItem = (index: number, value: string) => {
@@ -347,54 +330,31 @@ const PackageManagementTab = () => {
               <label className="text-sm font-medium text-primary">
                 Include Items
               </label>
-              <div
-                className="relative"
-                ref={(element) => {
-                  dropdownRefs.current[index] = element;
-                }}
-              >
-                <button
-                  type="button"
-                  disabled={!isEditing}
-                  onClick={() =>
-                    setOpenDropdown(openDropdown === index ? null : index)
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Type an item and press Enter"
+                  className="bg-input/30 border-white/10 text-primary h-11"
+                  readOnly={!isEditing}
+                  value={includeItemInputs[index] ?? ""}
+                  onChange={(event) =>
+                    setIncludeItemInput(index, event.target.value)
                   }
-                  className="w-full flex items-center justify-between bg-input/30 border border-white/10 text-primary h-11 px-3 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring/50 disabled:opacity-60"
+                  onKeyDown={(event) => {
+                    if (event.key !== "Enter" || !isEditing) return;
+                    event.preventDefault();
+                    addItem(index, includeItemInputs[index] ?? "");
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="default"
+                  size="sm"
+                  disabled={!isEditing}
+                  className="h-11 px-4"
+                  onClick={() => addItem(index, includeItemInputs[index] ?? "")}
                 >
-                  <span className="text-muted-foreground">
-                    {pkg.include_items.length > 0
-                      ? `${pkg.include_items.length} item${pkg.include_items.length > 1 ? "s" : ""} selected`
-                      : "Select package items"}
-                  </span>
-                  <ChevronDown
-                    className={cn(
-                      "w-4 h-4 text-muted-foreground transition-transform duration-200",
-                      openDropdown === index && "rotate-180",
-                    )}
-                  />
-                </button>
-
-                {isEditing && openDropdown === index && (
-                  <div className="absolute z-50 bottom-full mb-1 w-full bg-card border border-white/10 rounded-md shadow-lg max-h-56 overflow-y-auto">
-                    {includeOptions.map((item) => {
-                      const isChecked = pkg.include_items.includes(item);
-                      return (
-                        <div
-                          key={item}
-                          onClick={() => toggleItem(index, item)}
-                          className="flex items-center gap-3 px-3 py-2.5 cursor-pointer hover:bg-white/5 select-none"
-                        >
-                          <Checkbox
-                            checked={isChecked}
-                            onCheckedChange={() => toggleItem(index, item)}
-                            onClick={(event) => event.stopPropagation()}
-                          />
-                          <span className="text-sm text-primary">{item}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+                  Add
+                </Button>
               </div>
 
               {pkg.include_items.length > 0 && (
