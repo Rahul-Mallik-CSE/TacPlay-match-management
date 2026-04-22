@@ -75,7 +75,7 @@ const SELECT_OPTIONS = {
   ],
   sessionType: [
     { label: "Team", value: "teams" },
-    { label: "Manual Player", value: "manual_player" },
+    { label: "Individual Player", value: "manual_player" },
   ],
 } as const;
 
