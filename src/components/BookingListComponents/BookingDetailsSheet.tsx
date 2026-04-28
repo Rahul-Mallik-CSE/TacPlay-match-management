@@ -20,6 +20,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { useTranslation } from "react-i18next";
 import { useGetBookingDetailsQuery } from "@/redux/features/bookingList/bookingListAPI";
 
 interface BookingDetailsSheetProps {
@@ -33,6 +34,7 @@ const BookingDetailsSheet: React.FC<BookingDetailsSheetProps> = ({
   onOpenChange,
   bookingId,
 }) => {
+  const { t } = useTranslation("dashboard");
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   const { data, isLoading, isFetching, isError } = useGetBookingDetailsQuery(
@@ -60,34 +62,27 @@ const BookingDetailsSheet: React.FC<BookingDetailsSheetProps> = ({
               >
                 <ArrowLeft className="w-5 h-5 text-primary" />
               </button>
+              <SheetTitle>{t("bookings.details.title")}</SheetTitle>
               <StatusBadge status={details?.booking.status ?? "pending"} />
             </div>
-            <SheetTitle className="text-xl font-bold text-primary ">
-              Booking Details
-            </SheetTitle>
             <SheetDescription className="text-sm text-secondary">
-              View full booking information and transaction.
+              {t("bookings.details.subtitle")}
             </SheetDescription>
           </SheetHeader>
-
-          <div className="px-5 pb-5 ">
+          <div className="px-5 pb-5">
             {isLoading || isFetching ? (
               <div className="py-6 text-sm text-muted-foreground">
-                Loading booking details...
+                {t("bookings.details.loading")}
               </div>
-            ) : null}
-
-            {isError ? (
+            ) : isError ? (
               <div className="py-6 text-sm text-destructive">
-                Failed to load booking details.
+                {t("bookings.details.loadFailed")}
               </div>
-            ) : null}
-
-            {details ? (
+            ) : details ? (
               <>
-                <div>
+                <div className="mt-6">
                   <h3 className="text-lg font-semibold text-primary mb-3">
-                    Player Info
+                    {t("bookings.details.playerInfo")}
                   </h3>
                   <div>
                     <InfoRow
@@ -106,10 +101,9 @@ const BookingDetailsSheet: React.FC<BookingDetailsSheetProps> = ({
                     <InfoRow label="Location" value={details.player.location} />
                   </div>
                 </div>
-
                 <div className="mt-6">
                   <h3 className="text-lg font-semibold text-primary mb-3">
-                    Session Info
+                    {t("bookings.details.sessionInfo")}
                   </h3>
                   <div>
                     <InfoRow
@@ -145,10 +139,9 @@ const BookingDetailsSheet: React.FC<BookingDetailsSheetProps> = ({
                     />
                   </div>
                 </div>
-
                 <div className="mt-6">
                   <h3 className="text-lg font-semibold text-primary mb-3">
-                    Payment Info
+                    {t("bookings.details.paymentInfo")}
                   </h3>
                   <div>
                     <InfoRow
@@ -182,13 +175,12 @@ const BookingDetailsSheet: React.FC<BookingDetailsSheetProps> = ({
               </>
             ) : null}
           </div>
-
           <SheetFooter className="px-5 pb-5 pt-2 justify-center">
             <button
               onClick={() => setConfirmOpen(true)}
               className="w-full py-2.5 rounded-lg bg-custom-red text-white text-sm font-medium hover:bg-custom-red/80 transition-colors"
             >
-              Mark as Checked-In
+              {t("bookings.details.markCheckedIn")}
             </button>
           </SheetFooter>
         </SheetContent>
@@ -200,14 +192,12 @@ const BookingDetailsSheet: React.FC<BookingDetailsSheetProps> = ({
           className="bg-card border border-white/10 max-w-sm"
         >
           <DialogHeader className="items-center">
-            <div className="w-12 h-12 rounded-full bg-custom-red/20 flex items-center justify-center mb-2">
+            <div className="flex flex-col items-center gap-3">
               <AlertCircle className="w-6 h-6 text-custom-red" />
+              <DialogTitle>{t("bookings.details.confirmCheckIn")}</DialogTitle>
             </div>
-            <DialogTitle className="text-primary text-center">
-              Are you sure you want to mark this player as checked-in?
-            </DialogTitle>
             <DialogDescription className="sr-only">
-              Confirm check-in action
+              {t("bookings.details.confirmDescription")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-row gap-3 sm:justify-center mt-2">
@@ -215,16 +205,15 @@ const BookingDetailsSheet: React.FC<BookingDetailsSheetProps> = ({
               onClick={() => setConfirmOpen(false)}
               className="flex-1 py-2.5 rounded-lg border border-white/10 text-primary text-sm font-medium hover:bg-white/5 transition-colors"
             >
-              Cancel
+              {t("common.cancel")}
             </button>
             <button
               onClick={() => {
                 setConfirmOpen(false);
-                onOpenChange(false);
               }}
               className="flex-1 py-2.5 rounded-lg bg-custom-red text-white text-sm font-medium hover:bg-custom-red/80 transition-colors"
             >
-              Yes, Sure
+              {t("common.yesSure")}
             </button>
           </DialogFooter>
         </DialogContent>

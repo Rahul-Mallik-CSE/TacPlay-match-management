@@ -4,6 +4,7 @@
 
 import React, { useMemo, useState } from "react";
 import { Search } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import CustomTable from "../CommonComponents/CustomTable";
 import BookingDetailsSheet from "@/components/BookingListComponents/BookingDetailsSheet";
 import BookingListLoading from "@/components/BookingListComponents/BookingListLoading";
@@ -16,6 +17,7 @@ import { useGetBookingListQuery } from "@/redux/features/bookingList/bookingList
 import type { BookingListItem } from "@/types/BookingListTypes";
 
 const BookingListTable = () => {
+  const { t } = useTranslation("dashboard");
   const dispatch = useAppDispatch();
   const page = useAppSelector((state) => state.bookingList.page);
   const limit = useAppSelector((state) => state.bookingList.limit);
@@ -78,7 +80,7 @@ const BookingListTable = () => {
 
   const columns = [
     {
-      header: "Booking ID",
+      header: t("bookings.columns.bookingId"),
       accessor: (row: BookingListItem) => (
         <span className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-custom-red" />
@@ -86,22 +88,28 @@ const BookingListTable = () => {
         </span>
       ),
     },
-    { header: "Player Name", accessor: "player_name" as keyof BookingListItem },
-    { header: "Session Date", accessor: "match_date" as keyof BookingListItem },
     {
-      header: "Match Type",
+      header: t("bookings.columns.playerName"),
+      accessor: "player_name" as keyof BookingListItem,
+    },
+    {
+      header: t("bookings.columns.sessionDate"),
+      accessor: "match_date" as keyof BookingListItem,
+    },
+    {
+      header: t("bookings.columns.matchType"),
       accessor: (row: BookingListItem) => matchTypeDot(row.match_type),
     },
     {
-      header: "Payment Status",
+      header: t("bookings.columns.paymentStatus"),
       accessor: (row: BookingListItem) => statusBadge(row.payment_status),
     },
     {
-      header: "Team",
+      header: t("bookings.columns.team"),
       accessor: "team_display" as keyof BookingListItem,
     },
     {
-      header: "Status",
+      header: t("bookings.columns.status"),
       accessor: (row: BookingListItem) => statusBadge(row.status),
     },
   ];
@@ -114,10 +122,10 @@ const BookingListTable = () => {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-2xl font-bold text-primary">Booking List</h1>
-        <p className="text-sm text-secondary mt-1">
-          Manage and review all session bookings.
-        </p>
+        <h1 className="text-2xl font-bold text-primary">
+          {t("bookings.title")}
+        </h1>
+        <p className="text-sm text-secondary mt-1">{t("bookings.subtitle")}</p>
       </div>
 
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -125,7 +133,7 @@ const BookingListTable = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary" />
           <input
             type="text"
-            placeholder="Search"
+            placeholder={t("common.search")}
             value={search}
             onChange={(event) => {
               setSearch(event.target.value);
@@ -137,7 +145,9 @@ const BookingListTable = () => {
       </div>
 
       {isError ? (
-        <div className="text-sm text-destructive">Failed to load bookings.</div>
+        <div className="text-sm text-destructive">
+          {t("bookings.loadFailed")}
+        </div>
       ) : null}
 
       <CustomTable

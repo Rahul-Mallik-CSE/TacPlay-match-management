@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/pagination";
 import { Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 interface CustomTableProps<T> {
   data: T[];
@@ -51,6 +52,7 @@ const CustomTable = <T extends Record<string, unknown>>({
   onItemsPerPageChange,
   additionalCount,
 }: CustomTableProps<T>) => {
+  const { t } = useTranslation("dashboard");
   const [internalPage, setInternalPage] = useState(1);
   const [internalItemsPerPage, setInternalItemsPerPage] =
     useState(itemsPerPage);
@@ -185,7 +187,7 @@ const CustomTable = <T extends Record<string, unknown>>({
                 ))}
                 {onAction && (
                   <TableHead className="font-medium text-secondary text-xs sm:text-sm text-right py-3 sm:py-4 whitespace-nowrap">
-                    Action
+                    {t("common.action")}
                   </TableHead>
                 )}
               </TableRow>
@@ -227,8 +229,11 @@ const CustomTable = <T extends Record<string, unknown>>({
       {/* Pagination */}
       <div className="flex items-center justify-between px-2 gap-3 flex-wrap">
         <p className="text-xs text-secondary">
-          Showing {totalEntries === 0 ? 0 : startIndex + 1} to{" "}
-          {Math.min(endIndex, totalEntries)} of {totalEntries} entries
+          {t("table.showing", {
+            from: totalEntries === 0 ? 0 : startIndex + 1,
+            to: Math.min(endIndex, totalEntries),
+            total: totalEntries,
+          })}
         </p>
         <div className="flex items-center gap-2">
           <Pagination>
@@ -303,9 +308,9 @@ const CustomTable = <T extends Record<string, unknown>>({
               }
             }}
           >
-            <option value={10}>Show 10</option>
-            <option value={25}>Show 25</option>
-            <option value={50}>Show 50</option>
+            <option value={10}>{t("common.show10")}</option>
+            <option value={25}>{t("common.show25")}</option>
+            <option value={50}>{t("common.show50")}</option>
           </select>
         </div>
       </div>

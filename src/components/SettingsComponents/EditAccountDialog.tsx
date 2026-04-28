@@ -17,6 +17,7 @@ import type { FieldOwnerProfile } from "@/types/SettingTypes";
 import { toAbsoluteMediaUrl } from "@/lib/utils";
 import { toast } from "react-toastify";
 import { getErrorMessage, getSuccessMessage, saveAuthUser } from "@/lib/auth";
+import { useTranslation } from "react-i18next";
 
 interface EditAccountDialogProps {
   open: boolean;
@@ -29,6 +30,7 @@ const EditAccountDialog: React.FC<EditAccountDialogProps> = ({
   onOpenChange,
   profile,
 }) => {
+  const { t } = useTranslation("dashboard");
   const [fullName, setFullName] = useState(() => profile?.full_name || "");
   const [contactNumber, setContactNumber] = useState(
     () => profile?.contact_number || "",
@@ -58,12 +60,12 @@ const EditAccountDialog: React.FC<EditAccountDialogProps> = ({
 
   const handleSave = async () => {
     if (!fullName.trim()) {
-      toast.error("Full name is required.");
+      toast.error(t("editAccount.fullNameRequired"));
       return;
     }
 
     if (!contactNumber.trim()) {
-      toast.error("Contact number is required.");
+      toast.error(t("editAccount.contactRequired"));
       return;
     }
 
@@ -79,12 +81,10 @@ const EditAccountDialog: React.FC<EditAccountDialogProps> = ({
       if (response?.data) {
         saveAuthUser(response.data);
       }
-      toast.success(
-        getSuccessMessage(response, "Profile updated successfully."),
-      );
+      toast.success(getSuccessMessage(response, t("editAccount.updated")));
       onOpenChange(false);
     } catch (error) {
-      toast.error(getErrorMessage(error, "Failed to update profile."));
+      toast.error(getErrorMessage(error, t("editAccount.updateFailed")));
     }
   };
 
@@ -96,10 +96,10 @@ const EditAccountDialog: React.FC<EditAccountDialogProps> = ({
       >
         <DialogHeader className="items-center">
           <DialogTitle className="text-xl font-bold text-primary">
-            Edit Account Info
+            {t("editAccount.title")}
           </DialogTitle>
           <DialogDescription className="text-sm text-secondary">
-            Update your profile picture and display name.
+            {t("editAccount.subtitle")}
           </DialogDescription>
         </DialogHeader>
 
@@ -111,7 +111,7 @@ const EditAccountDialog: React.FC<EditAccountDialogProps> = ({
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={displayImage}
-                  alt="Profile preview"
+                  alt={t("navbar.profileAlt")}
                   className="w-full h-full object-cover"
                 />
               ) : (
@@ -148,7 +148,9 @@ const EditAccountDialog: React.FC<EditAccountDialogProps> = ({
 
           {/* Full Name */}
           <div className="w-full space-y-2">
-            <label className="text-sm text-secondary">Full Name</label>
+            <label className="text-sm text-secondary">
+              {t("editAccount.fullName")}
+            </label>
             <input
               type="text"
               value={fullName}
@@ -158,7 +160,9 @@ const EditAccountDialog: React.FC<EditAccountDialogProps> = ({
           </div>
 
           <div className="w-full space-y-2">
-            <label className="text-sm text-secondary">Contact Number</label>
+            <label className="text-sm text-secondary">
+              {t("editAccount.contactNumber")}
+            </label>
             <input
               type="number"
               value={contactNumber}
@@ -173,7 +177,9 @@ const EditAccountDialog: React.FC<EditAccountDialogProps> = ({
             disabled={isUpdating}
             className="w-full py-2.5 rounded-lg bg-custom-red text-white text-sm font-medium hover:bg-custom-red/80 transition-colors"
           >
-            {isUpdating ? "Saving..." : "Save Changes"}
+            {isUpdating
+              ? t("editAccount.saving")
+              : t("editAccount.saveChanges")}
           </Button>
         </div>
       </DialogContent>

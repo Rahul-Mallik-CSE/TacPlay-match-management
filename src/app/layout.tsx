@@ -5,6 +5,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import LayoutWrapper from "@/components/CommonComponents/LayoutWrapper";
 import ReduxProvider from "@/redux/ReduxProvider";
+import I18nProvider from "@/components/CommonComponents/I18nProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,9 +33,11 @@ export default function RootLayout({
         suppressHydrationWarning
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ReduxProvider>
-          <LayoutWrapper>{children}</LayoutWrapper>
-        </ReduxProvider>
+        <I18nProvider>
+          <ReduxProvider>
+            <LayoutWrapper>{children}</LayoutWrapper>
+          </ReduxProvider>
+        </I18nProvider>
       </body>
     </html>
   );

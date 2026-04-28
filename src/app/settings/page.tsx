@@ -9,6 +9,7 @@ import ChangePasswordDialog from "@/components/SettingsComponents/ChangePassword
 import { Button } from "@/components/ui/button";
 import { useGetFieldOwnerProfileQuery } from "@/redux/features/settings/settingsAPI";
 import { toAbsoluteMediaUrl } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 const getInitials = (fullName?: string) => {
   if (!fullName) return "U";
@@ -22,6 +23,7 @@ const getInitials = (fullName?: string) => {
 };
 
 const SettingsPage = () => {
+  const { t } = useTranslation("dashboard");
   const [editOpen, setEditOpen] = useState(false);
   const [passwordOpen, setPasswordOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -38,10 +40,10 @@ const SettingsPage = () => {
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-2xl sm:text-3xl font-bold text-primary">
-            Settings
+            {t("settingsPage.title")}
           </h1>
           <p className="text-sm text-secondary mt-1">
-            Manage your personal information and account preferences.
+            {t("settingsPage.subtitle")}
           </p>
         </div>
 
@@ -67,30 +69,36 @@ const SettingsPage = () => {
               <h2 className="text-lg sm:text-xl font-semibold text-primary">
                 {profile?.full_name || "-"}
               </h2>
-              <p className="text-sm text-secondary">Arena Owner</p>
+              <p className="text-sm text-secondary">
+                {t("settingsPage.arenaOwner")}
+              </p>
             </div>
           </div>
 
           {isLoading || isFetching ? (
-            <div className="text-sm text-secondary">Loading profile...</div>
+            <div className="text-sm text-secondary">
+              {t("settingsPage.loading")}
+            </div>
           ) : null}
 
           {isError ? (
             <div className="text-sm text-destructive">
-              Failed to load profile information.
+              {t("settingsPage.loadFailed")}
             </div>
           ) : null}
 
           {/* Personal Information */}
           <div>
             <h3 className="text-lg font-semibold text-primary mb-5">
-              Personal Information
+              {t("settingsPage.personalInfo")}
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               {/* Full Name */}
               <div className="space-y-2">
-                <label className="text-sm text-secondary">Full Name</label>
+                <label className="text-sm text-secondary">
+                  {t("settingsPage.fullName")}
+                </label>
                 <input
                   type="text"
                   readOnly
@@ -101,7 +109,9 @@ const SettingsPage = () => {
 
               {/* Email Address */}
               <div className="space-y-2">
-                <label className="text-sm text-secondary">Email Address</label>
+                <label className="text-sm text-secondary">
+                  {t("settingsPage.email")}
+                </label>
                 <input
                   type="email"
                   readOnly
@@ -112,7 +122,9 @@ const SettingsPage = () => {
 
               {/* Password */}
               <div className="space-y-2">
-                <label className="text-sm text-secondary">Password</label>
+                <label className="text-sm text-secondary">
+                  {t("settingsPage.password")}
+                </label>
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
@@ -136,7 +148,9 @@ const SettingsPage = () => {
 
               {/* Contact Number */}
               <div className="space-y-2">
-                <label className="text-sm text-secondary">Contact Number</label>
+                <label className="text-sm text-secondary">
+                  {t("settingsPage.contactNumber")}
+                </label>
                 <input
                   type="number"
                   readOnly
@@ -153,14 +167,14 @@ const SettingsPage = () => {
               onClick={() => setPasswordOpen(true)}
               className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg border bg-transparent border-white/10 text-sm text-primary font-medium hover:bg-white/5 transition-colors"
             >
-              Password Change
+              {t("settingsPage.passwordChange")}
             </Button>
             <Button
               onClick={() => setEditOpen(true)}
               className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg "
             >
               <Pen className="w-4 h-4" />
-              Edit Profile
+              {t("settingsPage.editProfile")}
             </Button>
           </div>
         </div>

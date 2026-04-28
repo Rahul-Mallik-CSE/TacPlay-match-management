@@ -22,6 +22,7 @@ import {
 import PlayerDetailsSheetLoading from "@/components/SessionComponents/SessionDetailsComponents/PlayerDetailsSheetLoading";
 import { toast } from "react-toastify";
 import { getErrorMessage, getSuccessMessage } from "@/lib/auth";
+import { useTranslation } from "react-i18next";
 
 interface PlayerDetailsSheetProps {
   open: boolean;
@@ -36,6 +37,7 @@ const PlayerDetailsSheet: React.FC<PlayerDetailsSheetProps> = ({
   sessionId,
   bookingId,
 }) => {
+  const { t } = useTranslation("dashboard");
   const [matchStatus, setMatchStatus] = useState<string | null>(null);
 
   const { data, isLoading, isFetching, isError } =
@@ -138,7 +140,7 @@ const PlayerDetailsSheet: React.FC<PlayerDetailsSheetProps> = ({
             Player Details &amp; Score Management
           </SheetTitle>
           <SheetDescription className="text-sm text-secondary">
-            View full booking information and transaction.
+            {t("bookings.details.subtitle")}
           </SheetDescription>
         </SheetHeader>
 
@@ -146,7 +148,7 @@ const PlayerDetailsSheet: React.FC<PlayerDetailsSheetProps> = ({
 
         {isError ? (
           <div className="px-5 py-6 text-sm text-destructive">
-            Failed to load player details.
+            {t("sessions.details.loadFailed")}
           </div>
         ) : null}
 

@@ -19,6 +19,7 @@ import { useGetDashboardOverviewQuery } from "@/redux/features/dashboard/dashboa
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { setDashboardRange } from "@/redux/features/dashboard/dashboardSlice";
 import type { DashboardRange } from "@/types/DashboardTypes";
+import { useTranslation } from "react-i18next";
 
 const RANGE_OPTIONS: DashboardRange[] = ["week", "month", "year"];
 
@@ -30,6 +31,7 @@ const STATS_ICON_BY_KEY: Record<string, ReactNode> = {
 };
 
 export default function Home() {
+  const { t } = useTranslation("dashboard");
   const dispatch = useAppDispatch();
   const selectedRange = useAppSelector(
     (state) => state.dashboard.selectedRange,
@@ -62,16 +64,16 @@ export default function Home() {
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-2xl font-bold text-primary">
-              {header?.title ?? "Analytics report"}
+              {header?.title ?? t("home.analyticsReport")}
             </h1>
             <p className="text-sm text-secondary mt-0.5">
-              {header?.subtitle ?? "Analytics support form 2025 to 2026"}
+              {header?.subtitle ?? t("home.analyticsSupport")}
             </p>
           </div>
           <div className="flex items-center gap-3 flex-wrap justify-end">
             <button className="flex items-center gap-2 bg-muted hover:bg-muted/80 text-primary text-sm font-medium px-4 py-2 rounded-lg border border-white/5 transition-colors">
               <FileText className="w-4 h-4" />
-              {header?.report_type ?? "All Reports"}
+              {header?.report_type ?? t("home.allReports")}
             </button>
 
             <div className="flex bg-muted rounded-lg p-0.5 border border-white/5">
@@ -85,7 +87,7 @@ export default function Home() {
                       : "text-primary hover:text-secondary"
                   }`}
                 >
-                  {range.charAt(0).toUpperCase() + range.slice(1)}
+                  {t(`home.${range}`)}
                 </button>
               ))}
             </div>
@@ -93,9 +95,7 @@ export default function Home() {
         </div>
 
         {isError ? (
-          <div className="text-sm text-destructive">
-            Failed to load dashboard data.
-          </div>
+          <div className="text-sm text-destructive">{t("home.loadFailed")}</div>
         ) : null}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

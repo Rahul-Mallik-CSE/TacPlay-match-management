@@ -15,6 +15,7 @@ import { Button } from "../ui/button";
 import { useChangeFieldOwnerPasswordMutation } from "@/redux/features/settings/settingsAPI";
 import { toast } from "react-toastify";
 import { getErrorMessage, getSuccessMessage } from "@/lib/auth";
+import { useTranslation } from "react-i18next";
 
 interface ChangePasswordDialogProps {
   open: boolean;
@@ -25,6 +26,7 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
   open,
   onOpenChange,
 }) => {
+  const { t } = useTranslation("dashboard");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -49,15 +51,15 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
     event.preventDefault();
 
     if (!currentPassword || !newPassword || !confirmPassword) {
-      setError("All fields are required.");
+      setError(t("changePassword.allRequired"));
       return;
     }
     if (newPassword.length < 8) {
-      setError("Password must be at least 8 characters.");
+      setError(t("changePassword.minLength"));
       return;
     }
     if (newPassword !== confirmPassword) {
-      setError("Passwords do not match.");
+      setError(t("changePassword.mismatch"));
       return;
     }
 
@@ -70,13 +72,11 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
         confirm_password: confirmPassword,
       }).unwrap();
 
-      toast.success(
-        getSuccessMessage(response, "Password changed successfully."),
-      );
+      toast.success(getSuccessMessage(response, t("changePassword.changed")));
       onOpenChange(false);
       resetForm();
     } catch (apiError) {
-      const message = getErrorMessage(apiError, "Failed to change password.");
+      const message = getErrorMessage(apiError, t("changePassword.failed"));
       setError(message);
       toast.error(message);
     }
@@ -90,23 +90,25 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
       >
         <DialogHeader className="items-center">
           <DialogTitle className="text-xl font-bold text-primary">
-            Set a new password
+            {t("changePassword.title")}
           </DialogTitle>
           <DialogDescription className="text-sm text-secondary text-center">
-            Your new password must be different from previously used passwords.
+            {t("changePassword.subtitle")}
           </DialogDescription>
         </DialogHeader>
 
         <form className="flex flex-col gap-4 mt-2" onSubmit={handleSubmit}>
           {/* Current Password */}
           <div className="space-y-2">
-            <label className="text-sm text-secondary">Current Password</label>
+            <label className="text-sm text-secondary">
+              {t("changePassword.current")}
+            </label>
             <div className="relative">
               <input
                 type={showCurrent ? "text" : "password"}
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
-                placeholder="Enter current password"
+                placeholder={t("changePassword.placeholderCurrent")}
                 className="w-full px-4 py-2.5 pr-10 rounded-lg bg-muted border border-white/10 text-sm text-primary placeholder:text-secondary focus:outline-none focus:ring-1 focus:ring-custom-yellow/50"
               />
               <button
@@ -125,13 +127,15 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
 
           {/* New Password */}
           <div className="space-y-2">
-            <label className="text-sm text-secondary">New Password</label>
+            <label className="text-sm text-secondary">
+              {t("changePassword.new")}
+            </label>
             <div className="relative">
               <input
                 type={showNew ? "text" : "password"}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Enter new password"
+                placeholder={t("changePassword.placeholderNew")}
                 className="w-full px-4 py-2.5 pr-10 rounded-lg bg-muted border border-white/10 text-sm text-primary placeholder:text-secondary focus:outline-none focus:ring-1 focus:ring-custom-yellow/50"
               />
               <button
@@ -146,20 +150,20 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
                 )}
               </button>
             </div>
-            <p className="text-xs text-secondary">
-              Must be at least 8 characters.
-            </p>
+            <p className="text-xs text-secondary">{t("changePassword.hint")}</p>
           </div>
 
           {/* Confirm Password */}
           <div className="space-y-2">
-            <label className="text-sm text-secondary">Confirm Password</label>
+            <label className="text-sm text-secondary">
+              {t("changePassword.confirm")}
+            </label>
             <div className="relative">
               <input
                 type={showConfirm ? "text" : "password"}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirm new password"
+                placeholder={t("changePassword.placeholderConfirm")}
                 className="w-full px-4 py-2.5 pr-10 rounded-lg bg-muted border border-white/10 text-sm text-primary placeholder:text-secondary focus:outline-none focus:ring-1 focus:ring-custom-yellow/50"
               />
               <button
@@ -190,7 +194,9 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
             disabled={isChangingPassword}
             className="w-full py-2.5 rounded-lg bg-custom-red text-white text-sm font-medium hover:bg-custom-red/80 transition-colors mt-1"
           >
-            {isChangingPassword ? "Changing..." : "Change Password"}
+            {isChangingPassword
+              ? t("changePassword.changing")
+              : t("changePassword.change")}
           </Button>
         </form>
       </DialogContent>

@@ -23,6 +23,7 @@ import SessionInfoSheetLoading from "@/components/SessionComponents/SessionDetai
 import { toast } from "react-toastify";
 import { getErrorMessage, getSuccessMessage } from "@/lib/auth";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 interface SessionInfoSheetProps {
   open: boolean;
@@ -35,6 +36,7 @@ const SessionInfoSheet: React.FC<SessionInfoSheetProps> = ({
   onOpenChange,
   sessionId,
 }) => {
+  const { t } = useTranslation("dashboard");
   const [teamAResult, setTeamAResult] = useState<"win" | "loss" | "draw">(
     "win",
   );
@@ -151,10 +153,10 @@ const SessionInfoSheet: React.FC<SessionInfoSheetProps> = ({
             </span>
           </div>
           <SheetTitle className="text-xl font-bold text-primary ">
-            Session Information
+            {t("sessions.details.viewInfo")}
           </SheetTitle>
           <SheetDescription className="text-sm text-secondary">
-            View full session details and current actions.
+            {t("sessions.details.title")}
           </SheetDescription>
         </SheetHeader>
 
@@ -162,7 +164,7 @@ const SessionInfoSheet: React.FC<SessionInfoSheetProps> = ({
 
         {isError ? (
           <div className="px-5 py-6 text-sm text-destructive">
-            Failed to load session info.
+            {t("sessions.details.loadFailed")}
           </div>
         ) : null}
 
@@ -293,7 +295,9 @@ const SessionInfoSheet: React.FC<SessionInfoSheetProps> = ({
                   }
                   className="flex-1 py-2.5 bg-transparent rounded-lg border border-white/10 text-primary text-sm font-medium hover:bg-white/5 transition-colors disabled:opacity-50"
                 >
-                  {isCancellingMatch ? "Cancelling..." : "Match Cancel"}
+                  {isCancellingMatch
+                    ? `${t("common.loading")}`
+                    : "Match Cancel"}
                 </Button>
                 <Button
                   onClick={handleStartMatch}
@@ -301,7 +305,7 @@ const SessionInfoSheet: React.FC<SessionInfoSheetProps> = ({
                   className="flex-1 disabled:opacity-50"
                 >
                   {isStartingMatch
-                    ? "Starting..."
+                    ? `${t("common.loading")}`
                     : (details.actions.primary_button ?? "Match Start")}
                 </Button>
               </>
@@ -315,7 +319,9 @@ const SessionInfoSheet: React.FC<SessionInfoSheetProps> = ({
                 }
                 className="w-full disabled:opacity-50"
               >
-                {isSubmittingResult ? "Submitting..." : "Submit Final Result"}
+                {isSubmittingResult
+                  ? `${t("common.loading")}`
+                  : "Submit Final Result"}
               </Button>
             ) : null}
           </SheetFooter>

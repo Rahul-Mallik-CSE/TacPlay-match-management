@@ -37,7 +37,7 @@ export default function LayoutWrapper({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const isAuthPage = isPublicAuthPath(pathname);
+  const isAuthPage = pathname ? isPublicAuthPath(pathname) : false;
 
   return (
     <>

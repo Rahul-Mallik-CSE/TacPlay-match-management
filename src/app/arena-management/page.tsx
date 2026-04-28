@@ -13,13 +13,15 @@ import PackageManagementTab from "@/components/ArenaManagementComponents/Package
 import PayoutDetailsTab from "@/components/ArenaManagementComponents/PayoutDetailsTab";
 import ArenaManagementLoading from "@/components/ArenaManagementComponents/ArenaManagementLoading";
 import { toAbsoluteMediaUrl } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 const ArenaManagementPage = () => {
+  const { t } = useTranslation("dashboard");
   const { data, isLoading, isFetching } = useGetArenaInfoQuery();
 
   const arenaInfo = data?.data;
   const userInfo = arenaInfo?.user_info;
-  const fullName = userInfo?.full_name || "Arena Owner";
+  const fullName = userInfo?.full_name || t("arena.arenaOwner");
   const email = userInfo?.email || "";
 
   const initials =
@@ -88,7 +90,7 @@ const ArenaManagementPage = () => {
             <div className="pb-1">
               <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-custom-red text-white text-xs sm:text-sm font-semibold">
                 <Crown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                Pro
+                {t("arena.pro")}
               </div>
             </div>
           </div>
@@ -106,34 +108,34 @@ const ArenaManagementPage = () => {
                 className="px-3 sm:px-4 py-2.5 text-xs sm:text-sm data-[state=active]:text-custom-yellow after:bg-custom-yellow whitespace-nowrap"
               >
                 <Shield className="w-3.5 h-3.5 mr-1.5 hidden sm:inline-block" />
-                Arena Info
+                {t("arena.tabs.arenaInfo")}
               </TabsTrigger>
               <TabsTrigger
                 value="field-setup"
                 className="px-3 sm:px-4 py-2.5 text-xs sm:text-sm data-[state=active]:text-custom-yellow after:bg-custom-yellow whitespace-nowrap"
               >
                 <Shield className="w-3.5 h-3.5 mr-1.5 hidden sm:inline-block" />
-                Field Setup
+                {t("arena.tabs.fieldSetup")}
               </TabsTrigger>
               <TabsTrigger
                 value="package-management"
                 className="px-3 sm:px-4 py-2.5 text-xs sm:text-sm data-[state=active]:text-custom-yellow after:bg-custom-yellow whitespace-nowrap"
               >
                 <Shield className="w-3.5 h-3.5 mr-1.5 hidden sm:inline-block" />
-                Package Management
+                {t("arena.tabs.packageManagement")}
               </TabsTrigger>
               <TabsTrigger
                 value="payout-details"
                 className="px-3 sm:px-4 py-2.5 text-xs sm:text-sm data-[state=active]:text-custom-yellow after:bg-custom-yellow whitespace-nowrap"
               >
                 <Shield className="w-3.5 h-3.5 mr-1.5 hidden sm:inline-block" />
-                Payout Details
+                {t("arena.tabs.payoutDetails")}
               </TabsTrigger>
               <TabsTrigger
                 value="billings"
                 className="px-3 sm:px-4 py-2.5 text-xs sm:text-sm data-[state=active]:text-custom-yellow after:bg-custom-yellow whitespace-nowrap"
               >
-                Billings
+                {t("arena.tabs.billings")}
               </TabsTrigger>
             </TabsList>
 

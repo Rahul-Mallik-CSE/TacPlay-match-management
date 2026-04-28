@@ -14,8 +14,10 @@ import {
 } from "@/redux/features/earnings/earningsSlice";
 import { useGetEarningsListQuery } from "@/redux/features/earnings/earningsAPI";
 import type { EarningsListItem } from "@/types/EarningTypes";
+import { useTranslation } from "react-i18next";
 
 const EarningTable = () => {
+  const { t } = useTranslation("dashboard");
   const dispatch = useAppDispatch();
   const page = useAppSelector((state) => state.earnings.page);
   const limit = useAppSelector((state) => state.earnings.limit);
@@ -75,32 +77,32 @@ const EarningTable = () => {
 
   const columns = [
     {
-      header: "Transaction ID",
+      header: t("earnings.columns.transactionId"),
       accessor: "display_transaction_id" as keyof EarningsListItem,
     },
     {
-      header: "Player Name",
+      header: t("earnings.columns.playerName"),
       accessor: "user_name" as keyof EarningsListItem,
     },
     {
-      header: "Session ID",
+      header: t("earnings.columns.sessionId"),
       accessor: "display_session_id" as keyof EarningsListItem,
     },
     {
-      header: "Match Type",
+      header: t("earnings.columns.matchType"),
       accessor: (row: EarningsListItem) =>
         serviceTypeDot(row.session_type_display),
     },
     {
-      header: "Date",
+      header: t("earnings.columns.date"),
       accessor: "date_display" as keyof EarningsListItem,
     },
     {
-      header: "Amount",
+      header: t("earnings.columns.amount"),
       accessor: "amount_display" as keyof EarningsListItem,
     },
     {
-      header: "Payment Method",
+      header: t("earnings.columns.paymentMethod"),
       accessor: (row: EarningsListItem) =>
         paymentBadge(row.payment_method_display),
     },
@@ -114,10 +116,10 @@ const EarningTable = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-primary">Earnings</h1>
-        <p className="text-sm text-secondary mt-1">
-          Track revenue and view transaction details.
-        </p>
+        <h1 className="text-2xl font-bold text-primary">
+          {t("earnings.title")}
+        </h1>
+        <p className="text-sm text-secondary mt-1">{t("earnings.subtitle")}</p>
       </div>
 
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -125,7 +127,7 @@ const EarningTable = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary" />
           <input
             type="text"
-            placeholder="Search"
+            placeholder={t("common.search")}
             value={search}
             onChange={(event) => {
               setSearch(event.target.value);
@@ -137,7 +139,9 @@ const EarningTable = () => {
       </div>
 
       {isError ? (
-        <div className="text-sm text-destructive">Failed to load earnings.</div>
+        <div className="text-sm text-destructive">
+          {t("earnings.loadFailed")}
+        </div>
       ) : null}
 
       <CustomTable

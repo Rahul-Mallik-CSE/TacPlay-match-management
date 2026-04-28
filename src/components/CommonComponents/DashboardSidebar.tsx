@@ -34,8 +34,10 @@ import {
 } from "@/lib/auth";
 import { toast } from "react-toastify";
 import { useGetFieldOwnerSubscriptionStatusQuery } from "@/redux/features/subscriptions/subscriptionsAPI";
+import { useTranslation } from "react-i18next";
 
 export default function DashboardSidebar() {
+  const { t } = useTranslation("dashboard");
   const { state } = useSidebar();
   const pathname = usePathname();
   const router = useRouter();
@@ -59,32 +61,32 @@ export default function DashboardSidebar() {
     {
       href: "/",
       icon: LayoutGrid,
-      label: "Dashboard",
+      label: t("common.dashboard"),
     },
     {
       href: "/sessions",
       icon: CiTrophy,
-      label: "Sessions",
+      label: t("sidebar.sessions"),
     },
     {
       href: "/booking-list",
       icon: IoDocumentTextOutline,
-      label: "Booking List",
+      label: t("sidebar.bookingList"),
     },
     {
       href: "/earnings",
       icon: BiMoneyWithdraw,
-      label: "Earnings",
+      label: t("sidebar.earnings"),
     },
     {
       href: "/arena-management",
       icon: GrUserManager,
-      label: "Arena Management",
+      label: t("sidebar.arenaManagement"),
     },
     {
       href: "/settings",
       icon: Settings,
-      label: "Settings",
+      label: t("common.settings"),
     },
   ];
 
@@ -195,7 +197,7 @@ export default function DashboardSidebar() {
               <Button
                 onClick={() => setIsUpgradeModalOpen(true)}
                 className="w-10 h-10 rounded-full flex items-center justify-center bg-linear-to-br from-[#980009] to-[#C00069] border-2 border-[#cdba20] shadow-lg"
-                title="Upgrade to Premium"
+                title={t("sidebar.upgradeToPremium")}
               >
                 <Crown size={18} className="text-[#cdba20]" />
               </Button>
@@ -218,13 +220,20 @@ export default function DashboardSidebar() {
                 <div>
                   <p className="text-primary text-sm font-semibold leading-snug mb-0.5">
                     {currentSubscription?.has_active_subscription
-                      ? `Current plan: ${currentSubscription.plan_name ?? "Active"}`
-                      : "Upgrade to Silver for more Features"}
+                      ? t("sidebar.currentPlan", {
+                          plan:
+                            currentSubscription.plan_name ??
+                            t("sidebar.active"),
+                        })
+                      : t("sidebar.upgradeToSilver")}
                   </p>
                   <p className="text-secondary text-xs mb-2">
                     {currentSubscription?.has_active_subscription
-                      ? `${currentSubscription.days_left ?? 0} days left • ${currentSubscription.status}`
-                      : "Unlock ranked hosting, analytics, and premium tools."}
+                      ? t("sidebar.daysLeft", {
+                          days: currentSubscription.days_left ?? 0,
+                          status: currentSubscription.status,
+                        })
+                      : t("sidebar.unlockMessage")}
                   </p>
                   <Button
                     onClick={() => setIsUpgradeModalOpen(true)}
@@ -232,8 +241,8 @@ export default function DashboardSidebar() {
                   >
                     <Crown size={15} className="text-[#cdba20]" />
                     {currentSubscription?.has_active_subscription
-                      ? "Manage"
-                      : "Upgrade"}
+                      ? t("sidebar.manage")
+                      : t("sidebar.upgrade")}
                   </Button>
                 </div>
               </div>

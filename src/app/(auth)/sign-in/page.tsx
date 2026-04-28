@@ -57,10 +57,11 @@ const SignInPageInner = () => {
 
       const defaultDestination = user.arena_info_saved ? "/" : "/profile-setup";
 
-      const returnTo =
-        safeReturnPath(searchParams.get("from")) ??
-        safeReturnPath(searchParams.get("redirect")) ??
-        defaultDestination;
+      const returnTo = searchParams
+        ? (safeReturnPath(searchParams.get("from")) ??
+          safeReturnPath(searchParams.get("redirect")) ??
+          defaultDestination)
+        : defaultDestination;
 
       router.push(returnTo);
       router.refresh();

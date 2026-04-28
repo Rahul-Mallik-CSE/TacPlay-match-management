@@ -14,12 +14,16 @@ import { useGetOwnerSessionDetailsQuery } from "@/redux/features/sessions/sessio
 import { toAbsoluteMediaUrl } from "@/lib/utils";
 import SessionDetailsLoading from "@/components/SessionComponents/SessionDetailsComponents/SessionDetailsLoading";
 import type { SessionPlayerCardModel } from "@/components/SessionComponents/SessionDetailsComponents/PlayerCard";
+import { useTranslation } from "react-i18next";
 
 const SessionDetailsPage = () => {
+  const { t } = useTranslation("dashboard");
   const params = useParams();
-  const sessionIdParam = Array.isArray(params["session-id"])
-    ? params["session-id"][0]
-    : params["session-id"];
+  const sessionIdParam = params
+    ? Array.isArray(params["session-id"])
+      ? params["session-id"][0]
+      : params["session-id"]
+    : undefined;
   const sessionId = Number(sessionIdParam);
 
   const isValidSessionId = Number.isFinite(sessionId) && sessionId > 0;
@@ -74,7 +78,7 @@ const SessionDetailsPage = () => {
     return (
       <div className="w-full p-3 md:p-4">
         <div className="max-w-625 mx-auto text-sm text-destructive">
-          Invalid session id.
+          {t("sessions.details.invalidId")}
         </div>
       </div>
     );
@@ -88,7 +92,7 @@ const SessionDetailsPage = () => {
     return (
       <div className="w-full p-3 md:p-4">
         <div className="max-w-625 mx-auto text-sm text-destructive">
-          Failed to load session details.
+          {t("sessions.details.loadFailed")}
         </div>
       </div>
     );
@@ -109,7 +113,7 @@ const SessionDetailsPage = () => {
               </button>
             </Link>
             <h1 className="text-2xl sm:text-3xl font-bold text-primary">
-              Sessions Details
+              {t("sessions.details.title")}
             </h1>
           </div>
           <Button
@@ -117,7 +121,9 @@ const SessionDetailsPage = () => {
             className="flex gap-2"
           >
             <Eye className="w-4 h-4" />
-            <span className="hidden sm:inline">View Session Info</span>
+            <span className="hidden sm:inline">
+              {t("sessions.details.viewInfo")}
+            </span>
           </Button>
         </div>
 

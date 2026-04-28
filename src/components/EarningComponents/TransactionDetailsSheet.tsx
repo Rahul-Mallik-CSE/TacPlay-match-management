@@ -22,6 +22,7 @@ import {
   View,
   pdf,
 } from "@react-pdf/renderer";
+import { useTranslation } from "react-i18next";
 
 interface TransactionDetailsSheetProps {
   open: boolean;
@@ -34,6 +35,7 @@ const TransactionDetailsSheet: React.FC<TransactionDetailsSheetProps> = ({
   onOpenChange,
   transactionId,
 }) => {
+  const { t } = useTranslation("dashboard");
   const [isDownloading, setIsDownloading] = useState(false);
   const { data, isLoading, isFetching, isError } = useGetEarningDetailsQuery(
     transactionId as number,
@@ -51,7 +53,10 @@ const TransactionDetailsSheet: React.FC<TransactionDetailsSheetProps> = ({
 
     try {
       const blob = await pdf(
-        <TransactionDetailsPdfDocument details={details} />,
+        <TransactionDetailsPdfDocument
+          details={details}
+          footerText={t("earnings.details.pdfFooter")}
+        />,
       ).toBlob();
 
       const objectUrl = URL.createObjectURL(blob);
@@ -84,24 +89,23 @@ const TransactionDetailsSheet: React.FC<TransactionDetailsSheetProps> = ({
             </button>
           </div>
           <SheetTitle className="text-xl font-bold text-primary">
-            {details?.title ?? "Transaction Details"}
+            {details?.title ?? t("earnings.details.title")}
           </SheetTitle>
           <SheetDescription className="text-sm text-secondary">
-            {details?.subtitle ??
-              "View complete transaction and payment information."}
+            {details?.subtitle ?? t("earnings.details.subtitle")}
           </SheetDescription>
         </SheetHeader>
 
         <div className="px-5 pb-5">
           {isLoading || isFetching ? (
             <div className="py-6 text-sm text-muted-foreground">
-              Loading transaction details...
+              {t("earnings.details.loading")}
             </div>
           ) : null}
 
           {isError ? (
             <div className="py-6 text-sm text-destructive">
-              Failed to load transaction details.
+              {t("earnings.details.loadFailed")}
             </div>
           ) : null}
 
@@ -109,7 +113,7 @@ const TransactionDetailsSheet: React.FC<TransactionDetailsSheetProps> = ({
             <>
               <div>
                 <h3 className="text-lg font-semibold text-primary mb-3">
-                  Player Info
+                  {t("earnings.details.playerInfo")}
                 </h3>
                 <div>
                   <InfoRow
@@ -134,7 +138,7 @@ const TransactionDetailsSheet: React.FC<TransactionDetailsSheetProps> = ({
 
               <div className="mt-6">
                 <h3 className="text-lg font-semibold text-primary mb-3">
-                  Payment Info
+                  {t("earnings.details.paymentInfo")}
                 </h3>
                 <div>
                   <InfoRow
@@ -184,7 +188,8 @@ const TransactionDetailsSheet: React.FC<TransactionDetailsSheetProps> = ({
             onClick={() => onOpenChange(false)}
             className="cursor-pointer flex-1 py-2.5 rounded-lg border border-white/10 text-primary text-sm font-medium hover:bg-white/5 transition-colors"
           >
-            {details?.actions.cancel_button_text ?? "Cancel"}
+            {details?.actions.cancel_button_text ??
+              t("earnings.details.cancel")}
           </button>
           <button
             onClick={handleDownload}
@@ -193,8 +198,9 @@ const TransactionDetailsSheet: React.FC<TransactionDetailsSheetProps> = ({
           >
             <Download className="w-4 h-4" />
             {isDownloading
-              ? "Generating PDF..."
-              : (details?.actions.download_button_text ?? "Download & Print")}
+              ? t("earnings.details.generating")
+              : (details?.actions.download_button_text ??
+                t("earnings.details.download"))}
           </button>
         </SheetFooter>
       </SheetContent>
@@ -293,8 +299,10 @@ const Row = ({ label, value }: { label: string; value: React.ReactNode }) => (
 
 const TransactionDetailsPdfDocument = ({
   details,
+  footerText,
 }: {
   details: TransactionDetailsResponse["data"]["transaction_details"];
+  footerText: string;
 }) => (
   <Document>
     <Page size="A4" style={pdfStyles.page}>
@@ -342,9 +350,7 @@ const TransactionDetailsPdfDocument = ({
         <Row label="Payment Status" value={details.status_display} />
       </View>
 
-      <Text style={pdfStyles.footer}>
-        Generated from TacPlay earnings transaction details
-      </Text>
+      <Text style={pdfStyles.footer}>{footerText}</Text>
     </Page>
   </Document>
 );
