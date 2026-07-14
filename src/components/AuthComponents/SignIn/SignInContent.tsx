@@ -23,10 +23,20 @@ function safeReturnPath(from: string | null): string | null {
   return from;
 }
 
+// [DEMO] Remove this section when deploying to production
+const DEMO_EMAIL = "rmallik191242@bscse.uiu.ac.bd";
+const DEMO_PASSWORD = "Rahul123#";
+
 const SignInContentInner = () => {
   const { t } = useTranslation("dashboard");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  // [DEMO] Remove this handler when deploying to production
+  const fillDemoCredentials = () => {
+    setEmail(DEMO_EMAIL);
+    setPassword(DEMO_PASSWORD);
+  };
   const router = useRouter();
   const searchParams = useSearchParams();
   const dispatch = useAppDispatch();
@@ -124,6 +134,15 @@ const SignInContentInner = () => {
             loadingLabel={t("auth.signingIn")}
             isLoading={isLoading}
           />
+
+          {/* [DEMO] Remove this button when deploying to production */}
+          <button
+            type="button"
+            onClick={fillDemoCredentials}
+            className="w-full py-2.5 rounded-lg border border-dashed border-custom-yellow/40 bg-custom-yellow/5 text-custom-yellow text-xs font-semibold hover:bg-custom-yellow/10 hover:border-custom-yellow/60 transition-colors cursor-pointer"
+          >
+            Try Demo Login
+          </button>
 
           <p className="text-sm text-center text-muted-foreground">
             {t("auth.dontHaveAccount")}{" "}
