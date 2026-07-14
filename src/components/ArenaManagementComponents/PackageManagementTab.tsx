@@ -3,7 +3,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { Loader2, Pen, Plus, Save, X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -15,6 +15,9 @@ import {
 import { getErrorMessage, getSuccessMessage } from "@/lib/auth";
 import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
+import TabHeader from "./shared/TabHeader";
+import FormField from "./shared/FormField";
+import { TabLoadingState, TabErrorState } from "./shared/TabStates";
 
 type PackageForm = {
   id?: number;
@@ -33,20 +36,152 @@ const EMPTY_PACKAGE: PackageForm = {
   is_active: true,
 };
 
+type PackageCardProps = {
+  pkg: PackageForm;
+  index: number;
+  isEditing: boolean;
+  onUpdate: (index: number, patch: Partial<PackageForm>) => void;
+  onRemove: (index: number) => void;
+  onAddItem: (index: number, value: string) => void;
+  onRemoveItem: (index: number, value: string) => void;
+  itemInput: string;
+  onItemInputChange: (value: string) => void;
+};
+
+const PackageCard: React.FC<PackageCardProps> = ({
+  pkg,
+  index,
+  isEditing,
+  onUpdate,
+  onRemove,
+  onAddItem,
+  onRemoveItem,
+  itemInput,
+  onItemInputChange,
+}) => {
+  const { t } = useTranslation("dashboard");
+
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg sm:text-xl font-bold text-primary">
+          {t("arena.packagesTab.type", { index: index + 1 })}
+        </h3>
+        {isEditing && (
+          <Button type="button" variant="ghost" size="sm" onClick={() => onRemove(index)}>
+            <X className="w-4 h-4" />
+          </Button>
+        )}
+      </div>
+
+      <FormField label={t("onboardingFields.packages.nameLabel")}>
+        <Input
+          value={pkg.package_name}
+          onChange={(e) => onUpdate(index, { package_name: e.target.value })}
+          readOnly={!isEditing}
+          className="bg-input/30 border-white/10 text-primary h-11"
+        />
+      </FormField>
+
+      <FormField label={t("onboardingFields.packages.descLabel")}>
+        <Textarea
+          value={pkg.description}
+          onChange={(e) => onUpdate(index, { description: e.target.value })}
+          readOnly={!isEditing}
+          className="bg-input/30 border-white/10 text-primary min-h-25"
+        />
+      </FormField>
+
+      <FormField label={t("onboardingFields.packages.feeLabel")}>
+        <Input
+          type="number"
+          inputMode="decimal"
+          step="0.01"
+          value={pkg.package_fee}
+          onChange={(e) => onUpdate(index, { package_fee: e.target.value })}
+          readOnly={!isEditing}
+          className="bg-input/30 border-white/10 text-primary h-11"
+        />
+      </FormField>
+
+      <div className="flex items-center justify-between py-2 border-t border-white/5">
+        <label className="text-sm font-medium text-primary">
+          {t("arena.packagesTab.active")}
+        </label>
+        <div className="flex items-center gap-3">
+          <Switch
+            checked={pkg.is_active}
+            onCheckedChange={(checked) => onUpdate(index, { is_active: checked })}
+            disabled={!isEditing}
+            className="data-[state=checked]:bg-custom-yellow"
+          />
+          <span className="text-sm text-muted-foreground">
+            {pkg.is_active ? t("arena.on") : t("arena.off")}
+          </span>
+        </div>
+      </div>
+
+      <FormField label={t("onboardingFields.packages.includeLabel")}>
+        <div className="flex gap-2">
+          <Input
+            placeholder={t("arena.packagesTab.placeholder")}
+            className="bg-input/30 border-white/10 text-primary h-11"
+            readOnly={!isEditing}
+            value={itemInput}
+            onChange={(e) => onItemInputChange(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key !== "Enter" || !isEditing) return;
+              e.preventDefault();
+              onAddItem(index, itemInput);
+            }}
+          />
+          <Button
+            type="button"
+            variant="default"
+            size="sm"
+            disabled={!isEditing}
+            className="h-11 px-4"
+            onClick={() => onAddItem(index, itemInput)}
+          >
+            {t("arena.add")}
+          </Button>
+        </div>
+
+        {pkg.include_items.length > 0 && (
+          <div className="flex flex-wrap gap-2 pt-1">
+            {pkg.include_items.map((item) => (
+              <span
+                key={item}
+                className="inline-flex items-center gap-1.5 bg-primary/15 border border-primary/30 text-primary text-xs font-medium px-2.5 py-1 rounded-full"
+              >
+                {item}
+                {isEditing && (
+                  <button
+                    type="button"
+                    onClick={() => onRemoveItem(index, item)}
+                    className="flex items-center justify-center hover:text-destructive transition-colors"
+                    aria-label={`Remove ${item}`}
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+              </span>
+            ))}
+          </div>
+        )}
+      </FormField>
+    </div>
+  );
+};
+
 const PackageManagementTab = () => {
   const { t } = useTranslation("dashboard");
-  const { data, isLoading, isFetching, isError } =
-    useGetPackageManagementQuery();
-  const [editPackageManagement, { isLoading: isSaving }] =
-    useEditPackageManagementMutation();
+  const { data, isLoading, isFetching, isError } = useGetPackageManagementQuery();
+  const [editPackageManagement, { isLoading: isSaving }] = useEditPackageManagementMutation();
 
   const [isEditing, setIsEditing] = useState(false);
-  const [draftPackages, setDraftPackages] = useState<PackageForm[] | null>(
-    null,
-  );
-  const [includeItemInputs, setIncludeItemInputs] = useState<
-    Record<number, string>
-  >({});
+  const [draftPackages, setDraftPackages] = useState<PackageForm[] | null>(null);
+  const [includeItemInputs, setIncludeItemInputs] = useState<Record<number, string>>({});
 
   const basePackages = useMemo(
     () =>
@@ -64,20 +199,13 @@ const PackageManagementTab = () => {
   const packages = isEditing ? (draftPackages ?? basePackages) : basePackages;
 
   const handleToggleEdit = () => {
-    if (isEditing) {
-      setDraftPackages(null);
-      setIncludeItemInputs({});
-      setIsEditing(false);
-      return;
-    }
-
+    if (isEditing) { setDraftPackages(null); setIncludeItemInputs({}); setIsEditing(false); return; }
     setDraftPackages(basePackages);
     setIsEditing(true);
   };
 
   const handleSave = async () => {
     if (!draftPackages) return;
-
     try {
       const response = await editPackageManagement({
         packages: draftPackages.map((item) => ({
@@ -88,300 +216,80 @@ const PackageManagementTab = () => {
           is_active: item.is_active,
         })),
       }).unwrap();
-
-      toast.success(
-        getSuccessMessage(response, t("arena.packagesTab.updated")),
-      );
-
+      toast.success(getSuccessMessage(response, t("arena.packagesTab.updated")));
       setDraftPackages(null);
       setIncludeItemInputs({});
       setIsEditing(false);
     } catch (error) {
-      toast.error(
-        getErrorMessage(error, t("arena.packagesTab.updateFailed")),
-      );
-      // Keep edit mode open so user can retry.
+      toast.error(getErrorMessage(error, t("arena.packagesTab.updateFailed")));
     }
   };
 
-  const updatePackage = (index: number, patch: Partial<PackageForm>) => {
-    setDraftPackages((previous) =>
-      previous
-        ? previous.map((item, i) =>
-            i === index ? { ...item, ...patch } : item,
-          )
-        : previous,
-    );
-  };
+  const updatePackage = (index: number, patch: Partial<PackageForm>) =>
+    setDraftPackages((p) => p ? p.map((item, i) => i === index ? { ...item, ...patch } : item) : p);
 
-  const addPackage = () => {
-    setDraftPackages((previous) =>
-      previous ? [...previous, { ...EMPTY_PACKAGE }] : [{ ...EMPTY_PACKAGE }],
-    );
-  };
+  const addPackage = () =>
+    setDraftPackages((p) => p ? [...p, { ...EMPTY_PACKAGE }] : [{ ...EMPTY_PACKAGE }]);
 
-  const removePackage = (index: number) => {
-    setDraftPackages((previous) =>
-      previous ? previous.filter((_, i) => i !== index) : previous,
-    );
-  };
+  const removePackage = (index: number) =>
+    setDraftPackages((p) => p ? p.filter((_, i) => i !== index) : p);
 
   const addItem = (index: number, rawValue: string) => {
     const value = rawValue.trim();
     if (!value) return;
-
-    setDraftPackages((previous) =>
-      previous
-        ? previous.map((pkg, pkgIndex) => {
-            if (pkgIndex !== index) return pkg;
-
-            const exists = pkg.include_items.includes(value);
-            if (exists) return pkg;
-
-            return {
-              ...pkg,
-              include_items: [...pkg.include_items, value],
-            };
-          })
-        : previous,
+    setDraftPackages((p) =>
+      p ? p.map((pkg, i) => {
+        if (i !== index) return pkg;
+        if (pkg.include_items.includes(value)) return pkg;
+        return { ...pkg, include_items: [...pkg.include_items, value] };
+      }) : p,
     );
-
-    setIncludeItemInputs((previous) => ({
-      ...previous,
-      [index]: "",
-    }));
+    setIncludeItemInputs((prev) => ({ ...prev, [index]: "" }));
   };
 
-  const setIncludeItemInput = (index: number, value: string) => {
-    setIncludeItemInputs((previous) => ({
-      ...previous,
-      [index]: value,
-    }));
-  };
-
-  const removeItem = (index: number, value: string) => {
-    setDraftPackages((previous) =>
-      previous
-        ? previous.map((pkg, pkgIndex) =>
-            pkgIndex === index
-              ? {
-                  ...pkg,
-                  include_items: pkg.include_items.filter(
-                    (item) => item !== value,
-                  ),
-                }
-              : pkg,
-          )
-        : previous,
+  const removeItem = (index: number, value: string) =>
+    setDraftPackages((p) =>
+      p ? p.map((pkg, i) =>
+        i === index ? { ...pkg, include_items: pkg.include_items.filter((item) => item !== value) } : pkg,
+      ) : p,
     );
-  };
 
-  if (isLoading || isFetching) {
-    return (
-      <div className="py-10 flex items-center justify-center text-muted-foreground">
-        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-        {t("arena.packagesTab.loading")}
-      </div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <div className="py-10 text-sm text-destructive">
-        {t("arena.packagesTab.loadFailed")}
-      </div>
-    );
-  }
+  if (isLoading || isFetching) return <TabLoadingState message={t("arena.packagesTab.loading")} />;
+  if (isError) return <TabErrorState message={t("arena.packagesTab.loadFailed")} />;
 
   return (
     <div className="space-y-6 mb-8 md:mb-12">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-primary">
-            {t("onboardingFields.packages.title")}
-          </h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            {t("onboardingFields.packages.subtitle")}
-          </p>
-        </div>
-        <div className="flex gap-3 flex-wrap">
-          <Button
-            variant="default"
-            size="sm"
-            className="flex items-center gap-2"
-            onClick={handleToggleEdit}
-          >
-            <Pen className="w-4 h-4" />
-            {isEditing ? t("arena.cancelEdit") : t("arena.editInfo")}
-          </Button>
-          {isEditing && (
-            <>
-              <Button
-                variant="default"
-                size="sm"
-                className="flex items-center gap-2"
-                onClick={handleSave}
-                disabled={isSaving}
-              >
-                {isSaving ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Save className="w-4 h-4" />
-                )}
-                {t("arena.save")}
-              </Button>
-              <Button
-                variant="default"
-                size="sm"
-                className="flex items-center gap-2"
-                onClick={addPackage}
-              >
-                <Plus className="w-4 h-4" />
-                {t("arena.packagesTab.addNew")}
-              </Button>
-            </>
-          )}
-        </div>
-      </div>
+      <TabHeader
+        title={t("onboardingFields.packages.title")}
+        subtitle={t("onboardingFields.packages.subtitle")}
+        isEditing={isEditing}
+        isSaving={isSaving}
+        onToggleEdit={handleToggleEdit}
+        onSave={handleSave}
+        extra={
+          isEditing ? (
+            <Button variant="default" size="sm" className="flex items-center gap-2" onClick={addPackage}>
+              <Plus className="w-4 h-4" />
+              {t("arena.packagesTab.addNew")}
+            </Button>
+          ) : undefined
+        }
+      />
 
       <div className="space-y-8">
         {packages.map((pkg, index) => (
-          <div key={`${pkg.id ?? "new"}-${index}`} className="space-y-5">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg sm:text-xl font-bold text-primary">
-                {t("arena.packagesTab.type", { index: index + 1 })}
-              </h3>
-              {isEditing && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removePackage(index)}
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-primary">
-                {t("onboardingFields.packages.nameLabel")}
-              </label>
-              <Input
-                value={pkg.package_name}
-                onChange={(event) =>
-                  updatePackage(index, { package_name: event.target.value })
-                }
-                readOnly={!isEditing}
-                className="bg-input/30 border-white/10 text-primary h-11"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-primary">
-                {t("onboardingFields.packages.descLabel")}
-              </label>
-              <Textarea
-                value={pkg.description}
-                onChange={(event) =>
-                  updatePackage(index, { description: event.target.value })
-                }
-                readOnly={!isEditing}
-                className="bg-input/30 border-white/10 text-primary min-h-25"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-primary">
-                {t("onboardingFields.packages.feeLabel")}
-              </label>
-              <Input
-                type="number"
-                inputMode="decimal"
-                step="0.01"
-                value={pkg.package_fee}
-                onChange={(event) =>
-                  updatePackage(index, { package_fee: event.target.value })
-                }
-                readOnly={!isEditing}
-                className="bg-input/30 border-white/10 text-primary h-11"
-              />
-            </div>
-
-            <div className="flex items-center justify-between py-2 border-t border-white/5">
-              <label className="text-sm font-medium text-primary">
-                {t("arena.packagesTab.active")}
-              </label>
-              <div className="flex items-center gap-3">
-                <Switch
-                  checked={pkg.is_active}
-                  onCheckedChange={(checked) =>
-                    updatePackage(index, { is_active: checked })
-                  }
-                  disabled={!isEditing}
-                  className="data-[state=checked]:bg-custom-yellow"
-                />
-                <span className="text-sm text-muted-foreground">
-                  {pkg.is_active ? t("arena.on") : t("arena.off")}
-                </span>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-primary">
-                {t("onboardingFields.packages.includeLabel")}
-              </label>
-              <div className="flex gap-2">
-                <Input
-                  placeholder={t("arena.packagesTab.placeholder")}
-                  className="bg-input/30 border-white/10 text-primary h-11"
-                  readOnly={!isEditing}
-                  value={includeItemInputs[index] ?? ""}
-                  onChange={(event) =>
-                    setIncludeItemInput(index, event.target.value)
-                  }
-                  onKeyDown={(event) => {
-                    if (event.key !== "Enter" || !isEditing) return;
-                    event.preventDefault();
-                    addItem(index, includeItemInputs[index] ?? "");
-                  }}
-                />
-                <Button
-                  type="button"
-                  variant="default"
-                  size="sm"
-                  disabled={!isEditing}
-                  className="h-11 px-4"
-                  onClick={() => addItem(index, includeItemInputs[index] ?? "")}
-                >
-                  {t("arena.add")}
-                </Button>
-              </div>
-
-              {pkg.include_items.length > 0 && (
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {pkg.include_items.map((item) => (
-                    <span
-                      key={item}
-                      className="inline-flex items-center gap-1.5 bg-primary/15 border border-primary/30 text-primary text-xs font-medium px-2.5 py-1 rounded-full"
-                    >
-                      {item}
-                      {isEditing && (
-                        <button
-                          type="button"
-                          onClick={() => removeItem(index, item)}
-                          className="flex items-center justify-center hover:text-destructive transition-colors"
-                          aria-label={`Remove ${item}`}
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      )}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
+          <PackageCard
+            key={`${pkg.id ?? "new"}-${index}`}
+            pkg={pkg}
+            index={index}
+            isEditing={isEditing}
+            onUpdate={updatePackage}
+            onRemove={removePackage}
+            onAddItem={addItem}
+            onRemoveItem={removeItem}
+            itemInput={includeItemInputs[index] ?? ""}
+            onItemInputChange={(v) => setIncludeItemInputs((prev) => ({ ...prev, [index]: v }))}
+          />
         ))}
       </div>
     </div>

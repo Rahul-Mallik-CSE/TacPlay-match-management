@@ -3,8 +3,6 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { Loader2, Pen, Save } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -22,6 +20,9 @@ import {
 import { getErrorMessage, getSuccessMessage } from "@/lib/auth";
 import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
+import TabHeader from "./shared/TabHeader";
+import FormField from "./shared/FormField";
+import { TabLoadingState, TabErrorState } from "./shared/TabStates";
 
 type ArenaInfoForm = {
   field_name: string;
@@ -62,20 +63,10 @@ const ArenaInfoTab = () => {
       key: country.isoCode,
       value: country.name,
     }));
-
     if (!form.country) return options;
-    const hasCurrent = options.some(
-      (country) => country.value === form.country,
-    );
+    const hasCurrent = options.some((c) => c.value === form.country);
     if (hasCurrent) return options;
-
-    return [
-      ...options,
-      {
-        key: `custom-${form.country}`,
-        value: form.country,
-      },
-    ];
+    return [...options, { key: `custom-${form.country}`, value: form.country }];
   }, [countries, form.country]);
 
   const cityOptions = useMemo(() => {
@@ -83,75 +74,44 @@ const ArenaInfoTab = () => {
       key: city.name,
       value: city.name,
     }));
-
     if (!form.city) return options;
-    const hasCurrent = options.some((city) => city.value === form.city);
+    const hasCurrent = options.some((c) => c.value === form.city);
     if (hasCurrent) return options;
-
-    return [
-      ...options,
-      {
-        key: `custom-${form.city}`,
-        value: form.city,
-      },
-    ];
+    return [...options, { key: `custom-${form.city}`, value: form.city }];
   }, [cities, form.city]);
 
   useEffect(() => {
     let active = true;
-
     const loadCountries = () => {
       const data = Country.getAllCountries();
       if (!active) return;
       setCountries(Array.isArray(data) ? data : []);
     };
-
     loadCountries();
-
-    return () => {
-      active = false;
-    };
+    return () => { active = false; };
   }, []);
 
   useEffect(() => {
     let active = true;
-
     const loadCities = () => {
-      const selectedCountry = countries.find(
-        (item) => item.name === form.country,
-      );
-      if (!selectedCountry) {
-        setCities([]);
-        return;
-      }
-
+      const selectedCountry = countries.find((item) => item.name === form.country);
+      if (!selectedCountry) { setCities([]); return; }
       const data = City.getCitiesOfCountry(selectedCountry.isoCode);
-
       if (!active) return;
       setCities(Array.isArray(data) ? data : []);
     };
-
     loadCities();
-
-    return () => {
-      active = false;
-    };
+    return () => { active = false; };
   }, [countries, form.country]);
 
   const handleToggleEdit = () => {
-    if (isEditing) {
-      setDraft(null);
-      setIsEditing(false);
-      return;
-    }
-
+    if (isEditing) { setDraft(null); setIsEditing(false); return; }
     setDraft(baseForm);
     setIsEditing(true);
   };
 
   const handleSave = async () => {
     if (!draft) return;
-
     try {
       const response = await editArenaInfo({
         field_name: draft.field_name,
@@ -160,206 +120,97 @@ const ArenaInfoTab = () => {
         city: draft.city,
         full_address: draft.full_address,
       }).unwrap();
-
-      toast.success(
-        getSuccessMessage(response, t("arena.arenaInfoTab.updated")),
-      );
-
+      toast.success(getSuccessMessage(response, t("arena.arenaInfoTab.updated")));
       setDraft(null);
       setIsEditing(false);
     } catch (error) {
       toast.error(getErrorMessage(error, t("arena.arenaInfoTab.updateFailed")));
-      // Keep edit mode open so user can retry.
     }
   };
 
-  if (isLoading || isFetching) {
-    return (
-      <div className="py-10 flex items-center justify-center text-muted-foreground">
-        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-        {t("arena.arenaInfoTab.loading")}
-      </div>
-    );
-  }
+  const updateDraft = (patch: Partial<ArenaInfoForm>) =>
+    setDraft((p) => (p ? { ...p, ...patch } : p));
 
-  if (isError) {
-    return (
-      <div className="py-10 text-sm text-destructive">
-        {t("arena.arenaInfoTab.loadFailed")}
-      </div>
-    );
-  }
+  if (isLoading || isFetching) return <TabLoadingState message={t("arena.arenaInfoTab.loading")} />;
+  if (isError) return <TabErrorState message={t("arena.arenaInfoTab.loadFailed")} />;
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-primary">
-            {t("onboardingFields.arena.title")}
-          </h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            {t("onboardingFields.arena.subtitle")}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="default"
-            size="sm"
-            className="w-fit flex items-center gap-2"
-            onClick={handleToggleEdit}
-          >
-            <Pen className="w-4 h-4" />
-            {isEditing ? t("arena.cancelEdit") : t("arena.editInfo")}
-          </Button>
-          {isEditing && (
-            <Button
-              variant="default"
-              size="sm"
-              className="w-fit flex items-center gap-2"
-              onClick={handleSave}
-              disabled={isSaving}
-            >
-              {isSaving ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Save className="w-4 h-4" />
-              )}
-              {t("arena.save")}
-            </Button>
-          )}
-        </div>
-      </div>
+      <TabHeader
+        title={t("onboardingFields.arena.title")}
+        subtitle={t("onboardingFields.arena.subtitle")}
+        isEditing={isEditing}
+        isSaving={isSaving}
+        onToggleEdit={handleToggleEdit}
+        onSave={handleSave}
+      />
 
       <div className="space-y-5">
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-primary">
-            {t("onboardingFields.arena.nameLabel")}
-          </label>
+        <FormField label={t("onboardingFields.arena.nameLabel")}>
           <Input
             placeholder={t("onboardingFields.arena.namePlaceholder")}
             value={form.field_name}
-            onChange={(event) =>
-              setDraft((previous) =>
-                previous
-                  ? {
-                      ...previous,
-                      field_name: event.target.value,
-                    }
-                  : previous,
-              )
-            }
+            onChange={(e) => updateDraft({ field_name: e.target.value })}
             readOnly={!isEditing}
             className="bg-input/30 border-white/10 text-primary h-11"
           />
-        </div>
+        </FormField>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-primary">
-            {t("onboardingFields.arena.descLabel")}
-          </label>
+        <FormField label={t("onboardingFields.arena.descLabel")}>
           <Textarea
             placeholder={t("onboardingFields.arena.descPlaceholder")}
             value={form.description}
-            onChange={(event) =>
-              setDraft((previous) =>
-                previous
-                  ? {
-                      ...previous,
-                      description: event.target.value,
-                    }
-                  : previous,
-              )
-            }
+            onChange={(e) => updateDraft({ description: e.target.value })}
             readOnly={!isEditing}
             className="bg-input/30 border-white/10 text-primary min-h-25"
           />
-        </div>
+        </FormField>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-primary">
-              {t("onboardingFields.arena.countryLabel")}
-            </label>
+          <FormField label={t("onboardingFields.arena.countryLabel")}>
             <Select
               value={form.country}
-              onValueChange={(value) =>
-                setDraft((previous) =>
-                  previous
-                    ? {
-                        ...previous,
-                        country: value,
-                        city: "",
-                      }
-                    : previous,
-                )
-              }
+              onValueChange={(v) => updateDraft({ country: v, city: "" })}
               disabled={!isEditing}
             >
               <SelectTrigger className="w-full bg-input/30 border-white/10 text-primary h-11">
                 <SelectValue placeholder={t("onboardingFields.arena.countryPlaceholder")} />
               </SelectTrigger>
               <SelectContent className="bg-card border-white/10">
-                {countryOptions.map((country) => (
-                  <SelectItem key={country.key} value={country.value}>
-                    {country.value}
-                  </SelectItem>
+                {countryOptions.map((c) => (
+                  <SelectItem key={c.key} value={c.value}>{c.value}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-primary">
-              {t("onboardingFields.arena.cityLabel")}
-            </label>
+          </FormField>
+
+          <FormField label={t("onboardingFields.arena.cityLabel")}>
             <Select
               value={form.city}
-              onValueChange={(value) =>
-                setDraft((previous) =>
-                  previous
-                    ? {
-                        ...previous,
-                        city: value,
-                      }
-                    : previous,
-                )
-              }
+              onValueChange={(v) => updateDraft({ city: v })}
               disabled={!isEditing}
             >
               <SelectTrigger className="w-full bg-input/30 border-white/10 text-primary h-11">
                 <SelectValue placeholder={t("onboardingFields.arena.cityPlaceholder")} />
               </SelectTrigger>
               <SelectContent className="bg-card border-white/10">
-                {cityOptions.map((city) => (
-                  <SelectItem key={city.key} value={city.value}>
-                    {city.value}
-                  </SelectItem>
+                {cityOptions.map((c) => (
+                  <SelectItem key={c.key} value={c.value}>{c.value}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
-          </div>
+          </FormField>
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-primary">
-            {t("onboardingFields.arena.addressLabel")}
-          </label>
+        <FormField label={t("onboardingFields.arena.addressLabel")}>
           <Input
             placeholder={t("onboardingFields.arena.addressPlaceholder")}
             value={form.full_address}
-            onChange={(event) =>
-              setDraft((previous) =>
-                previous
-                  ? {
-                      ...previous,
-                      full_address: event.target.value,
-                    }
-                  : previous,
-              )
-            }
+            onChange={(e) => updateDraft({ full_address: e.target.value })}
             readOnly={!isEditing}
             className="bg-input/30 border-white/10 text-primary h-11"
           />
-        </div>
+        </FormField>
       </div>
     </div>
   );

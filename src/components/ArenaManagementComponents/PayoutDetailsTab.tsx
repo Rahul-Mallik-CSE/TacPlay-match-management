@@ -3,8 +3,6 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { Loader2, Pen, Save, Lock, Crown } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -21,6 +19,10 @@ import { getErrorMessage, getSuccessMessage } from "@/lib/auth";
 import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
 import UpgradeModal from "@/components/CommonComponents/UpgradeModal";
+import TabHeader from "./shared/TabHeader";
+import FormField from "./shared/FormField";
+import { TabLoadingState, TabErrorState } from "./shared/TabStates";
+import PayoutLockedState from "./PayoutLockedState";
 
 type PayoutForm = {
   business_name: string;
@@ -36,8 +38,7 @@ type PayoutForm = {
 const PayoutDetailsTab = () => {
   const { t } = useTranslation("dashboard");
   const { data, isLoading, isFetching, isError, error } = useGetPayoutDetailsQuery();
-  const [editPayoutDetails, { isLoading: isSaving }] =
-    useEditPayoutDetailsMutation();
+  const [editPayoutDetails, { isLoading: isSaving }] = useEditPayoutDetailsMutation();
 
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState<PayoutForm | null>(null);
@@ -60,19 +61,13 @@ const PayoutDetailsTab = () => {
   const form = isEditing ? (draft ?? baseForm) : baseForm;
 
   const handleToggleEdit = () => {
-    if (isEditing) {
-      setDraft(null);
-      setIsEditing(false);
-      return;
-    }
-
+    if (isEditing) { setDraft(null); setIsEditing(false); return; }
     setDraft(baseForm);
     setIsEditing(true);
   };
 
   const handleSave = async () => {
     if (!draft) return;
-
     try {
       const response = await editPayoutDetails({
         business_name: draft.business_name,
@@ -84,27 +79,18 @@ const PayoutDetailsTab = () => {
         iban_routing_number: draft.iban_routing_number,
         swift_bic_code: draft.swift_bic_code,
       }).unwrap();
-
-      toast.success(
-        getSuccessMessage(response, t("arena.payoutTab.updated")),
-      );
-
+      toast.success(getSuccessMessage(response, t("arena.payoutTab.updated")));
       setDraft(null);
       setIsEditing(false);
     } catch (error) {
       toast.error(getErrorMessage(error, t("arena.payoutTab.updateFailed")));
-      // Keep edit mode open so user can retry.
     }
   };
 
-  if (isLoading || isFetching) {
-    return (
-      <div className="py-10 flex items-center justify-center text-muted-foreground">
-        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-        {t("arena.payoutTab.loading")}
-      </div>
-    );
-  }
+  const updateDraft = (patch: Partial<PayoutForm>) =>
+    setDraft((p) => (p ? { ...p, ...patch } : p));
+
+  if (isLoading || isFetching) return <TabLoadingState message={t("arena.payoutTab.loading")} />;
 
   if (isError) {
     const isForbidden = error && "status" in error && error.status === 403;
@@ -113,120 +99,40 @@ const PayoutDetailsTab = () => {
 
     if (isForbidden || errorMsg.includes("Bronze plan") || errorMsg.includes("Essential Starter for Fields")) {
       return (
-        <div className="flex flex-col items-center justify-center py-12 px-6 text-center bg-card border border-white/5 rounded-2xl shadow-xl min-h-[300px]">
-          <div className="w-16 h-16 rounded-full bg-custom-red/10 border border-custom-red/20 flex items-center justify-center mb-4 shadow-[0_0_20px_rgba(152,0,9,0.3)] animate-pulse">
-            <Lock className="w-6 h-6 text-custom-red" />
-          </div>
-          <h3 className="text-lg sm:text-xl font-bold text-primary mb-2">
-            {t("arena.payoutTab.unlockTitle", "Unlock Payout Details")}
-          </h3>
-          <p className="text-sm text-secondary max-w-[420px] mb-6 leading-relaxed">
-            {t(
-              "arena.payoutTab.unlockDesc",
-              "Upgrade your plan to Essential for Field Growth or Gold to view and edit your payout accounts, bank credentials, and manage business details."
-            )}
-          </p>
-          <button
-            onClick={() => setIsUpgradeModalOpen(true)}
-            className="flex items-center gap-2 bg-linear-to-r from-[#980009] via-[#C00069] to-[#980009] text-white text-sm font-bold px-6 py-3 rounded-xl hover:opacity-90 transition-all shadow-[0_0_15px_rgba(192,0,105,0.4)] hover:scale-105 active:scale-95 cursor-pointer"
-          >
-            <Crown className="w-4 h-4 text-[#cdba20]" />
-            {t("sidebar.upgrade", "Upgrade")}
-          </button>
-
-          <UpgradeModal
-            isOpen={isUpgradeModalOpen}
-            onClose={() => setIsUpgradeModalOpen(false)}
-          />
-        </div>
+        <>
+          <PayoutLockedState onUpgradeClick={() => setIsUpgradeModalOpen(true)} />
+          <UpgradeModal isOpen={isUpgradeModalOpen} onClose={() => setIsUpgradeModalOpen(false)} />
+        </>
       );
     }
-
-    return (
-      <div className="py-10 text-sm text-destructive">
-        {t("arena.payoutTab.loadFailed")}
-      </div>
-    );
+    return <TabErrorState message={t("arena.payoutTab.loadFailed")} />;
   }
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-primary">
-            {t("onboardingFields.payout.title")}
-          </h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            {t("onboardingFields.payout.subtitle")}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="default"
-            size="sm"
-            className="w-fit flex items-center gap-2"
-            onClick={handleToggleEdit}
-          >
-            <Pen className="w-4 h-4" />
-            {isEditing ? t("arena.cancelEdit") : t("arena.editInfo")}
-          </Button>
-          {isEditing && (
-            <Button
-              variant="default"
-              size="sm"
-              className="w-fit flex items-center gap-2"
-              onClick={handleSave}
-              disabled={isSaving}
-            >
-              {isSaving ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Save className="w-4 h-4" />
-              )}
-              {t("arena.save")}
-            </Button>
-          )}
-        </div>
-      </div>
+      <TabHeader
+        title={t("onboardingFields.payout.title")}
+        subtitle={t("onboardingFields.payout.subtitle")}
+        isEditing={isEditing}
+        isSaving={isSaving}
+        onToggleEdit={handleToggleEdit}
+        onSave={handleSave}
+      />
 
       <div className="space-y-5">
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-primary">
-            {t("onboardingFields.payout.bizNameLabel")}
-          </label>
+        <FormField label={t("onboardingFields.payout.bizNameLabel")}>
           <Input
             value={form.business_name}
-            onChange={(event) =>
-              setDraft((previous) =>
-                previous
-                  ? {
-                      ...previous,
-                      business_name: event.target.value,
-                    }
-                  : previous,
-              )
-            }
+            onChange={(e) => updateDraft({ business_name: e.target.value })}
             readOnly={!isEditing}
             className="bg-input/30 border-white/10 text-primary h-11"
           />
-        </div>
+        </FormField>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-primary">
-            {t("onboardingFields.payout.bizTypeLabel")}
-          </label>
+        <FormField label={t("onboardingFields.payout.bizTypeLabel")}>
           <Select
             value={form.business_type}
-            onValueChange={(value) =>
-              setDraft((previous) =>
-                previous
-                  ? {
-                      ...previous,
-                      business_type: value,
-                    }
-                  : previous,
-              )
-            }
+            onValueChange={(v) => updateDraft({ business_type: v })}
             disabled={!isEditing}
           >
             <SelectTrigger className="w-full bg-input/30 border-white/10 text-primary h-11">
@@ -234,33 +140,19 @@ const PayoutDetailsTab = () => {
             </SelectTrigger>
             <SelectContent className="bg-card border-white/10">
               <SelectItem value="individual">{t("onboardingFields.payout.typeIndividual")}</SelectItem>
-              <SelectItem value="registered_company">
-                {t("onboardingFields.payout.typeCompany")}
-              </SelectItem>
+              <SelectItem value="registered_company">{t("onboardingFields.payout.typeCompany")}</SelectItem>
             </SelectContent>
           </Select>
-        </div>
+        </FormField>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-primary">
-            {t("onboardingFields.payout.phoneLabel")}
-          </label>
+        <FormField label={t("onboardingFields.payout.phoneLabel")}>
           <Input
             value={form.contact_phone_number}
-            onChange={(event) =>
-              setDraft((previous) =>
-                previous
-                  ? {
-                      ...previous,
-                      contact_phone_number: event.target.value,
-                    }
-                  : previous,
-              )
-            }
+            onChange={(e) => updateDraft({ contact_phone_number: e.target.value })}
             readOnly={!isEditing}
             className="bg-input/30 border-white/10 text-primary h-11"
           />
-        </div>
+        </FormField>
       </div>
 
       <div className="space-y-5">
@@ -274,110 +166,50 @@ const PayoutDetailsTab = () => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-primary">
-              {t("onboardingFields.payout.holderLabel")}
-            </label>
+          <FormField label={t("onboardingFields.payout.holderLabel")}>
             <Input
               value={form.bank_account_holder_name}
-              onChange={(event) =>
-                setDraft((previous) =>
-                  previous
-                    ? {
-                        ...previous,
-                        bank_account_holder_name: event.target.value,
-                      }
-                    : previous,
-                )
-              }
+              onChange={(e) => updateDraft({ bank_account_holder_name: e.target.value })}
               readOnly={!isEditing}
               className="bg-input/30 border-white/10 text-primary h-11"
             />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-primary">
-              {t("onboardingFields.payout.bankLabel")}
-            </label>
+          </FormField>
+          <FormField label={t("onboardingFields.payout.bankLabel")}>
             <Input
               value={form.bank_name}
-              onChange={(event) =>
-                setDraft((previous) =>
-                  previous
-                    ? {
-                        ...previous,
-                        bank_name: event.target.value,
-                      }
-                    : previous,
-                )
-              }
+              onChange={(e) => updateDraft({ bank_name: e.target.value })}
               readOnly={!isEditing}
               className="bg-input/30 border-white/10 text-primary h-11"
             />
-          </div>
+          </FormField>
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-primary">
-            {t("onboardingFields.payout.numberLabel")}
-          </label>
+        <FormField label={t("onboardingFields.payout.numberLabel")}>
           <Input
             value={form.account_number}
-            onChange={(event) =>
-              setDraft((previous) =>
-                previous
-                  ? {
-                      ...previous,
-                      account_number: event.target.value,
-                    }
-                  : previous,
-              )
-            }
+            onChange={(e) => updateDraft({ account_number: e.target.value })}
             readOnly={!isEditing}
             className="bg-input/30 border-white/10 text-primary h-11"
           />
-        </div>
+        </FormField>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-primary">
-              {t("onboardingFields.payout.ibanLabel")}
-            </label>
+          <FormField label={t("onboardingFields.payout.ibanLabel")}>
             <Input
               value={form.iban_routing_number}
-              onChange={(event) =>
-                setDraft((previous) =>
-                  previous
-                    ? {
-                        ...previous,
-                        iban_routing_number: event.target.value,
-                      }
-                    : previous,
-                )
-              }
+              onChange={(e) => updateDraft({ iban_routing_number: e.target.value })}
               readOnly={!isEditing}
               className="bg-input/30 border-white/10 text-primary h-11"
             />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-primary">
-              {t("onboardingFields.payout.swiftLabel")}
-            </label>
+          </FormField>
+          <FormField label={t("onboardingFields.payout.swiftLabel")}>
             <Input
               value={form.swift_bic_code}
-              onChange={(event) =>
-                setDraft((previous) =>
-                  previous
-                    ? {
-                        ...previous,
-                        swift_bic_code: event.target.value,
-                      }
-                    : previous,
-                )
-              }
+              onChange={(e) => updateDraft({ swift_bic_code: e.target.value })}
               readOnly={!isEditing}
               className="bg-input/30 border-white/10 text-primary h-11"
             />
-          </div>
+          </FormField>
         </div>
       </div>
     </div>
