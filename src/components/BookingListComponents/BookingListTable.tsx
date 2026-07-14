@@ -3,11 +3,12 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { Search } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import CustomTable from "../CommonComponents/CustomTable";
 import BookingDetailsSheet from "@/components/BookingListComponents/BookingDetailsSheet";
 import BookingListLoading from "@/components/BookingListComponents/BookingListLoading";
+import BookingListHeader from "@/components/BookingListComponents/BookingListHeader";
+import StatusBadge from "@/components/BookingListComponents/shared/StatusBadge";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import {
   setBookingListLimit,
@@ -56,28 +57,6 @@ const BookingListTable = () => {
     );
   };
 
-  const statusBadge = (value: string) => {
-    const colorMap: Record<string, string> = {
-      paid: "bg-teal-500/20 text-teal-400 border border-teal-500/30",
-      pending:
-        "bg-custom-yellow/20 text-yellow-400 border border-custom-yellow/30",
-      confirmed:
-        "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30",
-      cancelled: "bg-custom-red/20 text-red-400 border border-custom-red/30",
-    };
-    const colors =
-      colorMap[value.toLowerCase()] ||
-      "bg-secondary/20 text-secondary border border-secondary/30";
-
-    return (
-      <span
-        className={`px-2.5 py-0.5 text-xs font-medium rounded-md ${colors}`}
-      >
-        {value}
-      </span>
-    );
-  };
-
   const columns = [
     {
       header: t("bookings.columns.bookingId"),
@@ -102,7 +81,9 @@ const BookingListTable = () => {
     },
     {
       header: t("bookings.columns.paymentStatus"),
-      accessor: (row: BookingListItem) => statusBadge(row.payment_status),
+      accessor: (row: BookingListItem) => (
+        <StatusBadge status={row.payment_status} />
+      ),
     },
     {
       header: t("bookings.columns.team"),
@@ -110,7 +91,9 @@ const BookingListTable = () => {
     },
     {
       header: t("bookings.columns.status"),
-      accessor: (row: BookingListItem) => statusBadge(row.status),
+      accessor: (row: BookingListItem) => (
+        <StatusBadge status={row.status} />
+      ),
     },
   ];
 
@@ -121,28 +104,13 @@ const BookingListTable = () => {
 
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="text-2xl font-bold text-primary">
-          {t("bookings.title")}
-        </h1>
-        <p className="text-sm text-secondary mt-1">{t("bookings.subtitle")}</p>
-      </div>
-
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div className="relative w-full sm:w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary" />
-          <input
-            type="text"
-            placeholder={t("common.search")}
-            value={search}
-            onChange={(event) => {
-              setSearch(event.target.value);
-              dispatch(setBookingListPage(1));
-            }}
-            className="w-full pl-9 pr-4 py-2 rounded-lg bg-muted border border-white/10 text-sm text-primary placeholder:text-secondary focus:outline-none focus:ring-1 focus:ring-custom-yellow/50"
-          />
-        </div>
-      </div>
+      <BookingListHeader
+        search={search}
+        onSearchChange={(value) => {
+          setSearch(value);
+          dispatch(setBookingListPage(1));
+        }}
+      />
 
       {isError ? (
         <div className="text-sm text-destructive">
