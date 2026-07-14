@@ -3,7 +3,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Eye, EyeOff, AlertCircle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -16,6 +16,7 @@ import { useChangeFieldOwnerPasswordMutation } from "@/redux/features/settings/s
 import { toast } from "react-toastify";
 import { getErrorMessage, getSuccessMessage } from "@/lib/auth";
 import { useTranslation } from "react-i18next";
+import PasswordField from "./shared/PasswordField";
 
 interface ChangePasswordDialogProps {
   open: boolean;
@@ -30,9 +31,6 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [showCurrent, setShowCurrent] = useState(false);
-  const [showNew, setShowNew] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState("");
   const [changePassword, { isLoading: isChangingPassword }] =
     useChangeFieldOwnerPasswordMutation();
@@ -42,9 +40,6 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
     setNewPassword("");
     setConfirmPassword("");
     setError("");
-    setShowCurrent(false);
-    setShowNew(false);
-    setShowConfirm(false);
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -98,89 +93,28 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
         </DialogHeader>
 
         <form className="flex flex-col gap-4 mt-2" onSubmit={handleSubmit}>
-          {/* Current Password */}
-          <div className="space-y-2">
-            <label className="text-sm text-secondary">
-              {t("changePassword.current")}
-            </label>
-            <div className="relative">
-              <input
-                type={showCurrent ? "text" : "password"}
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                placeholder={t("changePassword.placeholderCurrent")}
-                className="w-full px-4 py-2.5 pr-10 rounded-lg bg-muted border border-white/10 text-sm text-primary placeholder:text-secondary focus:outline-none focus:ring-1 focus:ring-custom-yellow/50"
-              />
-              <button
-                type="button"
-                onClick={() => setShowCurrent(!showCurrent)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary hover:text-primary transition-colors"
-              >
-                {showCurrent ? (
-                  <EyeOff className="w-4 h-4" />
-                ) : (
-                  <Eye className="w-4 h-4" />
-                )}
-              </button>
-            </div>
-          </div>
+          <PasswordField
+            label={t("changePassword.current")}
+            value={currentPassword}
+            onChange={setCurrentPassword}
+            placeholder={t("changePassword.placeholderCurrent")}
+          />
 
-          {/* New Password */}
-          <div className="space-y-2">
-            <label className="text-sm text-secondary">
-              {t("changePassword.new")}
-            </label>
-            <div className="relative">
-              <input
-                type={showNew ? "text" : "password"}
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder={t("changePassword.placeholderNew")}
-                className="w-full px-4 py-2.5 pr-10 rounded-lg bg-muted border border-white/10 text-sm text-primary placeholder:text-secondary focus:outline-none focus:ring-1 focus:ring-custom-yellow/50"
-              />
-              <button
-                type="button"
-                onClick={() => setShowNew(!showNew)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary hover:text-primary transition-colors"
-              >
-                {showNew ? (
-                  <EyeOff className="w-4 h-4" />
-                ) : (
-                  <Eye className="w-4 h-4" />
-                )}
-              </button>
-            </div>
-            <p className="text-xs text-secondary">{t("changePassword.hint")}</p>
-          </div>
+          <PasswordField
+            label={t("changePassword.new")}
+            value={newPassword}
+            onChange={setNewPassword}
+            placeholder={t("changePassword.placeholderNew")}
+            hint={t("changePassword.hint")}
+          />
 
-          {/* Confirm Password */}
-          <div className="space-y-2">
-            <label className="text-sm text-secondary">
-              {t("changePassword.confirm")}
-            </label>
-            <div className="relative">
-              <input
-                type={showConfirm ? "text" : "password"}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder={t("changePassword.placeholderConfirm")}
-                className="w-full px-4 py-2.5 pr-10 rounded-lg bg-muted border border-white/10 text-sm text-primary placeholder:text-secondary focus:outline-none focus:ring-1 focus:ring-custom-yellow/50"
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirm(!showConfirm)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary hover:text-primary transition-colors"
-              >
-                {showConfirm ? (
-                  <EyeOff className="w-4 h-4" />
-                ) : (
-                  <Eye className="w-4 h-4" />
-                )}
-              </button>
-            </div>
-          </div>
+          <PasswordField
+            label={t("changePassword.confirm")}
+            value={confirmPassword}
+            onChange={setConfirmPassword}
+            placeholder={t("changePassword.placeholderConfirm")}
+          />
 
-          {/* Error Message */}
           {error && (
             <div className="flex items-center gap-2 p-3 rounded-lg bg-custom-red/10 border border-custom-red/20">
               <AlertCircle className="w-4 h-4 text-custom-red shrink-0" />
@@ -188,7 +122,6 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
             </div>
           )}
 
-          {/* Submit Button */}
           <Button
             type="submit"
             disabled={isChangingPassword}
