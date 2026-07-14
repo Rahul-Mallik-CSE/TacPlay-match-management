@@ -4,23 +4,16 @@
 
 import React, { useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Plus } from "lucide-react";
 import CustomTable from "@/components/CommonComponents/CustomTable";
-import Link from "next/link";
 import SessionLoading from "@/components/SessionComponents/SessionLoading";
+import SessionListHeader from "@/components/SessionComponents/SessionListHeader";
 import {
   setSessionsLimit,
-  setSessionsMatchType,
   setSessionsPage,
-  setSessionsStatus,
 } from "@/redux/features/sessions/sessionsSlice";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { useGetOwnerSessionsQuery } from "@/redux/features/sessions/sessionsAPI";
-import type {
-  SessionMatchTypeFilter,
-  SessionsListItem,
-  SessionStatusFilter,
-} from "@/types/SessionTypes";
+import type { SessionsListItem } from "@/types/SessionTypes";
 import { useTranslation } from "react-i18next";
 
 const SessionTable: React.FC = () => {
@@ -76,12 +69,7 @@ const SessionTable: React.FC = () => {
   const matchType = useAppSelector((state) => state.sessions.matchType);
 
   const queryArgs = useMemo(
-    () => ({
-      page,
-      limit,
-      status,
-      match_type: matchType,
-    }),
+    () => ({ page, limit, status, match_type: matchType }),
     [limit, matchType, page, status],
   );
 
@@ -101,58 +89,8 @@ const SessionTable: React.FC = () => {
   };
 
   return (
-    <div className="w-full  space-y-6">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-primary">
-          {t("sessions.title")}
-        </h1>
-      </div>
-
-      {/* Search, Filter & Create */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <select
-            value={status}
-            onChange={(event) =>
-              dispatch(
-                setSessionsStatus(event.target.value as SessionStatusFilter),
-              )
-            }
-            className="bg-muted border border-white/10 rounded-lg px-4 py-2 text-sm text-primary outline-none"
-          >
-            <option value="all">{t("sessions.filters.allStatus")}</option>
-            <option value="open">{t("sessions.filters.open")}</option>
-            <option value="ongoing">{t("sessions.filters.ongoing")}</option>
-            <option value="completed">{t("sessions.filters.completed")}</option>
-            <option value="cancelled">{t("sessions.filters.cancelled")}</option>
-          </select>
-
-          <select
-            value={matchType}
-            onChange={(event) =>
-              dispatch(
-                setSessionsMatchType(
-                  event.target.value as SessionMatchTypeFilter,
-                ),
-              )
-            }
-            className="bg-muted border border-white/10 rounded-lg px-4 py-2 text-sm text-primary outline-none"
-          >
-            <option value="all">{t("sessions.filters.allMatchTypes")}</option>
-            <option value="ranked">{t("sessions.filters.ranked")}</option>
-            <option value="social">{t("sessions.filters.social")}</option>
-          </select>
-        </div>
-
-        {/* Create New Session */}
-        <Link href="/sessions/create-session">
-          <button className="flex cursor-pointer items-center gap-2 bg-custom-red hover:bg-custom-red/80 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors">
-            <Plus className="w-4 h-4" />
-            {t("sessions.createNew")}
-          </button>
-        </Link>
-      </div>
+    <div className="w-full space-y-6">
+      <SessionListHeader />
 
       {isError ? (
         <div className="text-sm text-destructive">
@@ -160,7 +98,6 @@ const SessionTable: React.FC = () => {
         </div>
       ) : null}
 
-      {/* Table */}
       <CustomTable<SessionsListItem>
         data={rows}
         columns={columns}
