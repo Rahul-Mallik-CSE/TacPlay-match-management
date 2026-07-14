@@ -3,10 +3,11 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { Search } from "lucide-react";
 import CustomTable from "../CommonComponents/CustomTable";
 import TransactionDetailsSheet from "./TransactionDetailsSheet";
 import EarningLoading from "./EarningLoading";
+import EarningListHeader from "./EarningListHeader";
+import PaymentBadge from "./shared/PaymentBadge";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import {
   setEarningsLimit,
@@ -48,7 +49,7 @@ const EarningTable = () => {
     return <EarningLoading />;
   }
 
-  const serviceTypeDot = (type: string) => {
+  const matchTypeDot = (type: string) => {
     const isRanked = type.toLowerCase() === "ranked";
     return (
       <span className="flex items-center gap-2">
@@ -56,21 +57,6 @@ const EarningTable = () => {
           className={`w-2 h-2 rounded-full ${isRanked ? "bg-custom-red" : "bg-custom-yellow"}`}
         />
         {type}
-      </span>
-    );
-  };
-
-  const paymentBadge = (method: string) => {
-    const isStripe = method.toLowerCase() === "stripe";
-    return (
-      <span
-        className={`px-2.5 py-0.5 text-xs font-medium rounded-md border ${
-          isStripe
-            ? "bg-purple-500/20 text-purple-400 border-purple-500/30"
-            : "bg-blue-500/20 text-blue-400 border-blue-500/30"
-        }`}
-      >
-        {method}
       </span>
     );
   };
@@ -91,7 +77,7 @@ const EarningTable = () => {
     {
       header: t("earnings.columns.matchType"),
       accessor: (row: EarningsListItem) =>
-        serviceTypeDot(row.session_type_display),
+        matchTypeDot(row.session_type_display),
     },
     {
       header: t("earnings.columns.date"),
@@ -103,8 +89,9 @@ const EarningTable = () => {
     },
     {
       header: t("earnings.columns.paymentMethod"),
-      accessor: (row: EarningsListItem) =>
-        paymentBadge(row.payment_method_display),
+      accessor: (row: EarningsListItem) => (
+        <PaymentBadge method={row.payment_method_display} />
+      ),
     },
   ];
 
@@ -115,28 +102,13 @@ const EarningTable = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-primary">
-          {t("earnings.title")}
-        </h1>
-        <p className="text-sm text-secondary mt-1">{t("earnings.subtitle")}</p>
-      </div>
-
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div className="relative w-full sm:w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary" />
-          <input
-            type="text"
-            placeholder={t("common.search")}
-            value={search}
-            onChange={(event) => {
-              setSearch(event.target.value);
-              dispatch(setEarningsPage(1));
-            }}
-            className="w-full pl-9 pr-4 py-2 rounded-lg bg-muted border border-white/10 text-sm text-primary placeholder:text-secondary focus:outline-none focus:ring-1 focus:ring-custom-yellow/50"
-          />
-        </div>
-      </div>
+      <EarningListHeader
+        search={search}
+        onSearchChange={(value) => {
+          setSearch(value);
+          dispatch(setEarningsPage(1));
+        }}
+      />
 
       {isError ? (
         <div className="text-sm text-destructive">
