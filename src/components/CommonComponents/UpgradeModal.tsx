@@ -1,9 +1,9 @@
 /** @format */
 "use client";
-import React, { useMemo } from "react";
+import React from "react";
 import { Check, X } from "lucide-react";
-import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
+import { Dialog, DialogContent, DialogClose, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { cn, getPlanDisplayName } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { toast } from "react-toastify";
 import { getErrorMessage, getSuccessMessage } from "@/lib/auth";
@@ -17,44 +17,31 @@ import {
   setLastPaymentUrl,
   setSelectedPlanCode,
 } from "@/redux/features/subscriptions/subscriptionsSlice";
+import { useTranslation } from "react-i18next";
+import { SubscriptionPlan } from "@/types/SubscriptionTypes";
 
 interface UpgradeModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const PLAN_FEATURES: Record<string, string[]> = {
-  field_bronze_monthly: [
-    "Create and manage sessions",
-    "Accept player bookings",
-    "Appear in field search results",
-    "Basic booking overview",
-    "Push Notification",
-    "Player Review & Rating",
-    "Host ranked matches",
-  ],
-  field_silver_monthly: [
-    "Everything in Bronze",
-    "Host ranked matches",
-    "Advanced booking analytics",
-    "Priority listing in search",
-    "Ai Smart Scheduling",
-    "Discount code & Promotion",
-    "Email & Push Campaign",
-    "Priority Email Support",
-  ],
-  field_gold_monthly: [
-    "Everything in Silver",
-    "Unlimited session creation",
-    "Full earnings tracking",
-    "Detailed performance insights",
-    "Custom field branding",
-    "Coming Soon & blend Out",
-  ],
-};
-
 export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
+  const { t } = useTranslation("dashboard");
   const dispatch = useAppDispatch();
+
+  const getPlanButtonText = (plan: SubscriptionPlan) => {
+    if (plan.is_current) {
+      return t("upgradeModal.buttonActive");
+    }
+    const btnTextLower = plan.button_text?.toLowerCase();
+    if (btnTextLower === "active" || btnTextLower === "current") {
+      return t("upgradeModal.buttonActive");
+    }
+    if (btnTextLower === "upgrade" || btnTextLower === "buy now" || btnTextLower === "get started") {
+      return t("upgradeModal.buttonUpgrade");
+    }
+    return plan.button_text;
+  };
 
   const {
     data: plansResponse,
@@ -67,8 +54,6 @@ export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
 
   const {
     data: statusResponse,
-    isLoading: isStatusLoading,
-    isFetching: isStatusFetching,
   } = useGetFieldOwnerSubscriptionStatusQuery(undefined, {
     skip: !isOpen,
   });
@@ -79,28 +64,9 @@ export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
   const plans = plansResponse?.data ?? [];
   const currentPlanCode = statusResponse?.data?.plan_code ?? null;
 
-  const statusCard = useMemo(() => {
-    const status = statusResponse?.data;
-
-    if (!status) return null;
-
-    return {
-      title: status.has_active_subscription
-        ? `Current plan: ${status.plan_name || "Active"}`
-        : "No active subscription",
-      subtitle: status.has_active_subscription
-        ? `${status.price || "0.00"} ${status.currency || ""} • ${status.status}`
-        : "Select a plan to continue.",
-      badge: status.has_active_subscription ? "Active" : "Inactive",
-      badgeClass: status.has_active_subscription
-        ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
-        : "bg-secondary/20 text-secondary border-secondary/30",
-    };
-  }, [statusResponse?.data]);
-
   const handleUpgrade = async (planCode: string) => {
     if (currentPlanCode === planCode) {
-      toast.success("This plan is already active.");
+      toast.success(t("upgradeModal.alreadyActive"));
       return;
     }
 
@@ -124,7 +90,7 @@ export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
       toast.success(
         getSuccessMessage(
           response,
-          "Stripe checkout session created successfully.",
+          t("upgradeModal.checkoutSuccess"),
         ),
       );
       onClose();
@@ -133,7 +99,7 @@ export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
         paymentWindow.close();
       }
       toast.error(
-        getErrorMessage(error, "Failed to start subscription upgrade."),
+        getErrorMessage(error, t("upgradeModal.upgradeFailed")),
       );
     }
   };
@@ -151,51 +117,27 @@ export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
               onClick={onClose}
               className="cursor-pointer absolute top-4 right-4 flex items-center gap-1.5 text-[#9a98b8] hover:text-white text-sm font-medium transition-colors"
             >
-              Cancel
+              {t("upgradeModal.cancel")}
               <span className="w-6 h-6 rounded-full border border-[#2C2740] flex items-center justify-center">
                 <X size={12} />
               </span>
             </button>
           </DialogClose>
 
-          <h2 className="text-2xl md:text-3xl font-bold text-primary mb-2">
-            Power Your Field. Control Every Match.
-          </h2>
-          <p className="text-secondary text-sm max-w-md mx-auto leading-relaxed">
-            Choose a plan that unlocks the right tools to manage sessions, host
-            ranked games, and grow your arena on TACPLAY.
-          </p>
-        </div>
-
-        <div className="px-6 pb-2">
-          <div className="rounded-2xl border border-[#2C2740] bg-[#100F17] px-4 py-3 flex items-center justify-between gap-3">
-            <div>
-              <p className="text-sm font-semibold text-primary">
-                {isStatusLoading || isStatusFetching
-                  ? "Loading subscription status..."
-                  : (statusCard?.title ?? "Subscription status")}
-              </p>
-              <p className="text-xs text-secondary mt-1">
-                {isStatusLoading || isStatusFetching
-                  ? "Please wait while we fetch your current plan."
-                  : (statusCard?.subtitle ?? "")}
-              </p>
-            </div>
-            {statusCard ? (
-              <span
-                className={cn(
-                  "px-3 py-1 rounded-md border text-xs font-medium shrink-0",
-                  statusCard.badgeClass,
-                )}
-              >
-                {statusCard.badge}
-              </span>
-            ) : null}
-          </div>
+          <DialogTitle asChild>
+            <h2 className="text-2xl md:text-3xl font-bold text-primary mb-2">
+              {t("upgradeModal.title")}
+            </h2>
+          </DialogTitle>
+          <DialogDescription asChild>
+            <p className="text-secondary text-sm max-w-md mx-auto leading-relaxed">
+              {t("upgradeModal.subtitle")}
+            </p>
+          </DialogDescription>
         </div>
 
         {/* Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 px-6 pb-8 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 px-6 pb-8 items-stretch">
           {isPlansLoading || isPlansFetching ? (
             <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4">
               {[0, 1, 2].map((placeholder) => (
@@ -207,28 +149,44 @@ export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
             </div>
           ) : isPlansError ? (
             <div className="md:col-span-3 rounded-2xl border border-[#2C2740] bg-[#0b0b0f] p-6 text-sm text-red-400">
-              Failed to load subscription plans.
+              {t("upgradeModal.failedToLoad")}
             </div>
           ) : (
             plans.map((plan) => {
-              const isSelected = plan.is_current;
+              const isComingSoonPlan = plan.code === "field_gold_monthly";
+              const isSelected = plan.is_current && !isComingSoonPlan;
               return (
                 <div
                   key={plan.id}
-                  onClick={() => dispatch(setSelectedPlanCode(plan.code))}
+                  onClick={() => {
+                    if (!isComingSoonPlan) {
+                      dispatch(setSelectedPlanCode(plan.code));
+                    }
+                  }}
                   className={cn(
-                    "relative rounded-2xl p-5 cursor-pointer transition-all duration-200",
+                    "relative rounded-2xl p-5 transition-all duration-200 flex flex-col",
                     isSelected
                       ? "border-2 border-transparent bg-[linear-gradient(#0b0b0f,#0b0b0f)_padding-box,linear-gradient(135deg,#cdba20,#C00069)_border-box] shadow-[0_0_24px_rgba(205,186,32,0.35)]"
                       : "border border-[#2C2740]",
+                    isComingSoonPlan
+                      ? "opacity-80 cursor-not-allowed"
+                      : "cursor-pointer",
                     "bg-[#0b0b0f]",
                   )}
                 >
                   {/* Popular badge */}
-                  {plan.is_current && (
+                  {isSelected && (
                     <div className="absolute top-4 right-4">
                       <Button className="bg-emerald-500/20 text-emerald-400 text-xs font-semibold px-3 py-1 border border-emerald-500/30">
-                        Current Plan
+                        {t("upgradeModal.currentPlan")}
+                      </Button>
+                    </div>
+                  )}
+
+                  {isComingSoonPlan && (
+                    <div className="absolute top-4 right-4">
+                      <Button className="bg-[#cdba20]/15 text-[#cdba20] text-xs font-semibold px-3 py-1 border border-[#cdba20]/40">
+                        {t("upgradeModal.comingSoon")}
                       </Button>
                     </div>
                   )}
@@ -236,65 +194,86 @@ export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
                   {/* Plan name + avatars */}
                   <div className="flex items-center gap-3 mb-3">
                     <span className="text-white font-semibold text-sm">
-                      {plan.name}
+                      {getPlanDisplayName(plan.name, t)}
                     </span>
                   </div>
 
-                  {/* Price */}
-                  <div className="mb-1">
-                    <span className="text-white text-4xl font-bold">
-                      {plan.currency} {plan.price}
-                    </span>
-                    <span className="text-[#9a98b8] text-sm ml-1">
-                      / {plan.billing_cycle}
-                    </span>
-                  </div>
 
-                  {/* Description */}
-                  <p className="text-[#cdba20] text-xs mb-4">
-                    {plan.description}
-                  </p>
+                  {isComingSoonPlan ? (
+                    <div className="flex-1 flex items-center justify-center min-h-36 md:min-h-80 text-[#cdba20] text-sm font-semibold tracking-wide">
+                      {t("upgradeModal.comingSoon")}
+                    </div>
+                  ) : (
+                    <>
+                      {/* Price */}
+                      <div className="mb-1">
+                        <span className="text-white text-4xl font-bold">
+                          {plan.currency} {plan.price}
+                        </span>
+                        {plan.code !== "field_bronze_monthly" && (
+                          <span className="text-[#9a98b8] text-sm ml-1">
+                            / {plan.billing_cycle}
+                          </span>
+                        )}
+                      </div>
 
-                  {/* Button */}
-                  <button
-                    className={cn(
-                      "w-full cur-pointer py-2.5 rounded-xl text-sm font-semibold transition-all mb-5",
-                      plan.is_current
-                        ? "bg-transparent border border-emerald-500/30 text-emerald-400 cursor-default"
-                        : plan.code.includes("silver")
-                          ? "bg-linear-to-r from-[#980009] via-[#C00069] to-[#980009] text-white shadow-[0_0_12px_rgba(192,0,105,0.4)] hover:opacity-90"
-                          : "bg-transparent border border-[#525273] text-white hover:border-white",
-                    )}
-                    disabled={plan.is_current || isUpgrading}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleUpgrade(plan.code);
-                    }}
-                  >
-                    {isUpgrading ? "Redirecting..." : plan.button_text}
-                  </button>
+                      {/* Description */}
+                      {plan.code !== "field_bronze_monthly" ? (
+                        <p className="text-[#cdba20] text-xs mb-4">
+                          {plan.description}
+                        </p>
+                      ) : (
+                        <p className="text-[#cdba20] text-xs mb-4">
+                         Free plan for field owner.
+                        </p>
+                      )}
 
-                  {/* Features */}
-                  <div>
-                    <p className="text-white font-semibold text-sm mb-3">
-                      Included Features:
-                    </p>
-                    <ul className="space-y-2">
-                      {(PLAN_FEATURES[plan.code] ?? []).map((feature) => (
-                        <li
-                          key={feature}
-                          className="flex items-center gap-2 text-xs text-[#d1cfe8]"
-                        >
-                          <Check
-                            size={14}
-                            className="text-[#980009] shrink-0"
-                            strokeWidth={3}
-                          />
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                      {/* Button */}
+                      <button
+                        className={cn(
+                          "w-full cur-pointer py-2.5 rounded-xl text-sm font-semibold transition-all mb-5",
+                          plan.is_current
+                            ? "bg-transparent border border-emerald-500/30 text-emerald-400 cursor-default"
+                            : plan.code.includes("silver")
+                              ? "bg-linear-to-r from-[#980009] via-[#C00069] to-[#980009] text-white shadow-[0_0_12px_rgba(192,0,105,0.4)] hover:opacity-90"
+                              : "bg-transparent border border-[#525273] text-white hover:border-white",
+                        )}
+                        disabled={plan.is_current || isUpgrading}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleUpgrade(plan.code);
+                        }}
+                      >
+                        {isUpgrading ? t("upgradeModal.redirecting") : getPlanButtonText(plan)}
+                      </button>
+
+                      {/* Features */}
+                      <div>
+                        <p className="text-white font-semibold text-sm mb-3">
+                          {t("upgradeModal.featuresLabel")}
+                        </p>
+                        <ul className="space-y-2">
+                          {(() => {
+                            const localizedFeatures = t(`upgradeModal.features.${plan.code}`, { returnObjects: true });
+                            const featuresList = Array.isArray(localizedFeatures) ? localizedFeatures : [];
+                            return featuresList.map((feature) => (
+                              <li
+                                key={feature}
+                                className="flex items-center gap-2 text-xs text-[#d1cfe8]"
+                              >
+                                <Check
+                                  size={14}
+                                  className="text-[#980009] shrink-0"
+                                  strokeWidth={3}
+                                />
+                                {feature}
+                              </li>
+                            ));
+                          })()}
+                        </ul>
+                      </div>
+                    </>
+                  )}
                 </div>
               );
             })

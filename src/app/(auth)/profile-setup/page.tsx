@@ -30,6 +30,8 @@ import {
 import { setArenaField } from "@/redux/features/arenaManagement/arenaManagementSlice";
 import { useAppDispatch } from "@/redux/hooks";
 import { getErrorMessage, getSuccessMessage } from "@/lib/auth";
+import { useTranslation } from "react-i18next";
+
 
 const TOAST = {
   autoClose: 4200,
@@ -97,7 +99,7 @@ const defaultArena: ArenaStepForm = {
   country: "Bangladesh",
   city: "Dhaka",
   full_address: "",
-  image: null,
+  images: [],
 };
 
 const defaultMatchRules: MatchRulesStepForm = {
@@ -107,25 +109,19 @@ const defaultMatchRules: MatchRulesStepForm = {
   maximum_players_per_session: "16",
   default_session_duration: "50",
   duration_unit: "minute",
-  base_price_per_player: "25.25",
+  base_price_per_player: "0",
   allow_social_matches: true,
   allow_ranked_matches: false,
 };
 
-const defaultPackages: PackageEntryForm[] = [
-  {
-    package_name: "",
-    description: "",
-    package_fee: "",
-    include_items: "",
-  },
-  {
-    package_name: "",
-    description: "",
-    package_fee: "",
-    include_items: "",
-  },
-];
+const createEmptyPackage = (): PackageEntryForm => ({
+  package_name: "",
+  description: "",
+  package_fee: "",
+  include_items: "",
+});
+
+const defaultPackages: PackageEntryForm[] = [createEmptyPackage()];
 
 const defaultPayout: PayoutStepForm = {
   business_name: "",
@@ -176,13 +172,21 @@ function buildStep2Body(match: MatchRulesStepForm): Step2MatchRequirementsBody {
       match.default_session_duration,
       "Default session duration",
     ),
-    base_price_per_player: match.base_price_per_player.trim(),
+    base_price_per_player: "0",
     allow_social_matches: match.allow_social_matches,
     allow_ranked_matches: match.allow_ranked_matches,
   };
 }
 
+const stepTranslationKeys = [
+  "onboarding.steps.arenaInfo",
+  "onboarding.steps.businessSetup",
+  "onboarding.steps.packageManagement",
+  "onboarding.steps.payoutSetup",
+];
+
 const ProfileSetupPage = () => {
+  const { t } = useTranslation("dashboard");
   const [currentStep, setCurrentStep] = useState(0);
   const [arena, setArena] = useState<ArenaStepForm>(defaultArena);
   const [matchRules, setMatchRules] =
@@ -210,6 +214,16 @@ const ProfileSetupPage = () => {
     }
   };
 
+  const handleAddPackage = () => {
+    setPackages((prev) => [...prev, createEmptyPackage()]);
+  };
+
+  const handleRemovePackage = (index: number) => {
+    setPackages((prev) =>
+      prev.length > 1 ? prev.filter((_, i) => i !== index) : prev,
+    );
+  };
+
   const saveArenaSuccess = (response: CompletionFlowResponse) => {
     dispatch(setArenaField(response.data));
   };
@@ -232,10 +246,10 @@ const ProfileSetupPage = () => {
           );
           return;
         }
-        if (!arena.image) {
+        if (!arena.images || arena.images.length === 0) {
           toastStepError(
             "Arena photo required",
-            "Upload a thumbnail image so players can recognize your field.",
+            "Upload at least one thumbnail image so players can recognize your field.",
           );
           return;
         }
@@ -245,7 +259,7 @@ const ProfileSetupPage = () => {
           country: arena.country.trim(),
           city: arena.city.trim(),
           full_address: arena.full_address.trim(),
-          image: arena.image,
+          images: arena.images,
         }).unwrap();
         saveArenaSuccess(response);
         toastStepSuccess(
@@ -286,7 +300,7 @@ const ProfileSetupPage = () => {
           if (!p.package_name || !p.description || !p.package_fee) {
             toastStepError(
               "Packages incomplete",
-              "Each package needs a name, description, and fee. Check both package blocks.",
+              "Each package needs a name, description, and fee. Check all packages before continuing.",
             );
             return;
           }
@@ -400,6 +414,8 @@ const ProfileSetupPage = () => {
                 prev.map((p, i) => (i === index ? { ...p, ...patch } : p)),
               )
             }
+            onAddPackage={handleAddPackage}
+            onRemovePackage={handleRemovePackage}
           />
         );
       case 3:
@@ -459,7 +475,7 @@ const ProfileSetupPage = () => {
                 >
                   {isCompleted ? <Check className="w-4 h-4" /> : step.id}
                 </div>
-                <span className="text-sm font-medium">{step.label}</span>
+                <span className="text-sm font-medium">{t(stepTranslationKeys[index])}</span>
               </button>
             );
           })}
@@ -476,7 +492,7 @@ const ProfileSetupPage = () => {
             className="object-contain"
           />
           <span className="text-sm text-muted-foreground">
-            Step {currentStep + 1} of {steps.length}
+            {t("onboarding.stepCount", { current: currentStep + 1, total: steps.length })}
           </span>
         </div>
 
@@ -499,7 +515,7 @@ const ProfileSetupPage = () => {
                   }`}
                 />
                 <span className="text-[10px] text-muted-foreground truncate max-w-full">
-                  {step.label}
+                  {t(stepTranslationKeys[index])}
                 </span>
               </div>
             );
@@ -521,7 +537,7 @@ const ProfileSetupPage = () => {
                 : "border border-white/10 bg-input/30 text-primary hover:bg-input/50"
             }`}
           >
-            ← Previous
+            {t("onboarding.previous")}
           </button>
 
           <button
@@ -531,10 +547,10 @@ const ProfileSetupPage = () => {
             className="px-6 py-2.5 rounded-lg bg-custom-red text-white text-sm font-semibold hover:bg-custom-red/90 transition-colors border-2 border-border disabled:opacity-60 disabled:pointer-events-none"
           >
             {busy
-              ? "Please wait…"
+              ? t("onboarding.pleaseWait")
               : isLastStep
-                ? "Submit & Approve"
-                : "Continue"}
+                ? t("onboarding.submitApprove")
+                : t("onboarding.continue")}
           </button>
         </div>
       </main>

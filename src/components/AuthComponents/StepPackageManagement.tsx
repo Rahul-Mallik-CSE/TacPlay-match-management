@@ -1,10 +1,7 @@
-/** @format */
-
-"use client";
-
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useTranslation } from "react-i18next";
 
 export type PackageEntryForm = {
   package_name: string;
@@ -16,22 +13,37 @@ export type PackageEntryForm = {
 type StepPackageManagementProps = {
   value: PackageEntryForm[];
   onChange: (index: number, patch: Partial<PackageEntryForm>) => void;
+  onAddPackage: () => void;
+  onRemovePackage: (index: number) => void;
 };
 
 const StepPackageManagement = ({
   value,
   onChange,
+  onAddPackage,
+  onRemovePackage,
 }: StepPackageManagementProps) => {
+  const { t } = useTranslation("dashboard");
+  const canRemove = value.length > 1;
+
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-xl sm:text-2xl font-bold text-primary">
-          Field Packages Management
-        </h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          Create bundled packages for players and events including equipment and
-          paintballs.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+        <div>
+          <h2 className="text-xl sm:text-2xl font-bold text-primary">
+            {t("onboardingFields.packages.title")}
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            {t("onboardingFields.packages.subtitle")}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onAddPackage}
+          className="px-4 py-2 rounded-lg border border-white/10 bg-input/30 text-sm text-primary hover:bg-input/50 transition-colors"
+        >
+          {t("onboardingFields.packages.addButton")}
+        </button>
       </div>
 
       {value.map((pkg, index) => (
@@ -39,16 +51,27 @@ const StepPackageManagement = ({
           key={index}
           className="space-y-5 border-t border-white/5 pt-6 first:border-t-0 first:pt-0"
         >
-          <h3 className="text-lg font-bold text-primary">
-            Package Type {index + 1}
-          </h3>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-lg font-bold text-primary">
+              {t("onboardingFields.packages.typeHeader", { index: index + 1 })}
+            </h3>
+            {canRemove ? (
+              <button
+                type="button"
+                onClick={() => onRemovePackage(index)}
+                className="text-xs text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+              >
+                {t("onboardingFields.packages.remove")}
+              </button>
+            ) : null}
+          </div>
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-primary">
-              Package Name
+              {t("onboardingFields.packages.nameLabel")}
             </label>
             <Input
-              placeholder="Enter package name"
+              placeholder={t("onboardingFields.packages.namePlaceholder")}
               className="bg-input/30 border-white/10 text-primary h-11"
               value={pkg.package_name}
               onChange={(e) =>
@@ -59,11 +82,11 @@ const StepPackageManagement = ({
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-primary">
-              Description
+              {t("onboardingFields.packages.descLabel")}
             </label>
             <Textarea
-              placeholder="Describe this package..."
-              className="bg-input/30 border-white/10 text-primary min-h-[100px]"
+              placeholder={t("onboardingFields.packages.descPlaceholder")}
+              className="bg-input/30 border-white/10 text-primary min-h-25"
               value={pkg.description}
               onChange={(e) => onChange(index, { description: e.target.value })}
             />
@@ -71,7 +94,7 @@ const StepPackageManagement = ({
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-primary">
-              Package Fee
+              {t("onboardingFields.packages.feeLabel")}
             </label>
             <Input
               type="number"
@@ -86,13 +109,13 @@ const StepPackageManagement = ({
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-primary">
-              Include Items
+              {t("onboardingFields.packages.includeLabel")}
             </label>
             <p className="text-xs text-muted-foreground">
-              Comma-separated list (e.g. Mask, Gun, 100 Paintballs).
+              {t("onboardingFields.packages.includeDesc")}
             </p>
             <Input
-              placeholder="Mask, Gun, 100 Paintballs"
+              placeholder={t("onboardingFields.packages.includePlaceholder")}
               className="bg-input/30 border-white/10 text-primary h-11"
               value={pkg.include_items}
               onChange={(e) =>

@@ -4,38 +4,38 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-
-const slides = [
-  {
-    title: "Command Your Arena",
-    description:
-      "Set up your field, schedule tactical sessions, and manage competitive paintball events with full control.",
-  },
-  {
-    title: "Manage Your Battles",
-    description:
-      "Organize ranked and social matches, track player stats, and build your arena's competitive reputation.",
-  },
-  {
-    title: "Grow Your Community",
-    description:
-      "Attract new players, manage bookings, and create memorable paintball experiences at your field.",
-  },
-];
+import headTitle from "../../../public/heading-up.png"
+import { useTranslation } from "react-i18next";
 
 interface AuthBannerProps {
   children: React.ReactNode;
 }
 
 const AuthBanner: React.FC<AuthBannerProps> = ({ children }) => {
+  const { t } = useTranslation("dashboard");
   const [currentSlide, setCurrentSlide] = useState(0);
+
+  const slides = [
+    {
+      title: t("auth.slides.commandArenaTitle"),
+      description: t("auth.slides.commandArenaDesc"),
+    },
+    {
+      title: t("auth.slides.manageBattlesTitle"),
+      description: t("auth.slides.manageBattlesDesc"),
+    },
+    {
+      title: t("auth.slides.growCommunityTitle"),
+      description: t("auth.slides.growCommunityDesc"),
+    },
+  ];
 
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
     }, 5000);
     return () => clearInterval(timer);
-  }, []);
+  }, [slides.length]);
 
   return (
     <div className="flex min-h-screen w-full bg-root-bg">
@@ -44,7 +44,7 @@ const AuthBanner: React.FC<AuthBannerProps> = ({ children }) => {
         {/* Logo */}
         <div className="absolute top-6 left-6 z-10">
           <Image
-            src="/Tacplay-logo.png"
+            src="/TACPLAY Logo.png"
             alt="TacPlay Logo"
             width={120}
             height={40}
@@ -55,7 +55,7 @@ const AuthBanner: React.FC<AuthBannerProps> = ({ children }) => {
         {/* Banner Image */}
         <div className="relative flex-1 m-4 rounded-2xl overflow-hidden">
           <Image
-            src="/banner.png"
+            src="/banner.jpg"
             alt="Arena Banner"
             fill
             className="object-cover"
@@ -63,7 +63,7 @@ const AuthBanner: React.FC<AuthBannerProps> = ({ children }) => {
           />
 
           {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/30 to-transparent" />
 
           {/* Bottom content */}
           <div className="absolute bottom-0 left-0 right-0 p-8">
@@ -88,11 +88,14 @@ const AuthBanner: React.FC<AuthBannerProps> = ({ children }) => {
             </div>
 
             {/* Tagline */}
-            <p className="mt-6 text-sm font-bold tracking-widest">
-              <span className="text-custom-red">GEAR UP.</span>{" "}
-              <span className="text-custom-yellow">MATCH UP.</span>{" "}
-              <span className="text-custom-yellow">LEVEL UP.</span>
-            </p>
+            <div className="mt-6">
+              <Image
+                src={headTitle}
+                alt="Tagline"
+                width={300}
+                height={10}
+              />
+            </div>
           </div>
         </div>
       </div>

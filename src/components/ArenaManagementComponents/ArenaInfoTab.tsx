@@ -14,18 +14,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  getDataCitysByCountry,
-  getDataCountrys,
-  type cityProps,
-  type countryProps,
-} from "country-state-city-nextjs";
+import { City, Country, type ICity, type ICountry } from "country-state-city";
 import {
   useEditArenaInfoMutation,
   useGetArenaInfoQuery,
 } from "@/redux/features/arenaManagement/arenaManagementAPI";
 import { getErrorMessage, getSuccessMessage } from "@/lib/auth";
 import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
 
 type ArenaInfoForm = {
   field_name: string;
@@ -36,14 +32,15 @@ type ArenaInfoForm = {
 };
 
 const ArenaInfoTab = () => {
+  const { t } = useTranslation("dashboard");
   const { data, isLoading, isFetching, isError } = useGetArenaInfoQuery();
   const [editArenaInfo, { isLoading: isSaving }] = useEditArenaInfoMutation();
 
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState<ArenaInfoForm | null>(null);
 
-  const [countries, setCountries] = useState<countryProps[]>([]);
-  const [cities, setCities] = useState<cityProps[]>([]);
+  const [countries, setCountries] = useState<ICountry[]>([]);
+  const [cities, setCities] = useState<ICity[]>([]);
 
   const currentArena = data?.data;
 
@@ -60,35 +57,42 @@ const ArenaInfoTab = () => {
 
   const form = isEditing ? (draft ?? baseForm) : baseForm;
 
-  const normalizedCountries = useMemo(() => {
-    if (!form.country) return countries;
-    const hasCurrent = countries.some(
-      (country) => country.text === form.country,
+  const countryOptions = useMemo(() => {
+    const options = countries.map((country) => ({
+      key: country.isoCode,
+      value: country.name,
+    }));
+
+    if (!form.country) return options;
+    const hasCurrent = options.some(
+      (country) => country.value === form.country,
     );
-    if (hasCurrent) return countries;
+    if (hasCurrent) return options;
 
     return [
-      ...countries,
+      ...options,
       {
-        id: -1,
-        text: form.country,
-        code: "",
+        key: `custom-${form.country}`,
+        value: form.country,
       },
     ];
   }, [countries, form.country]);
 
-  const normalizedCities = useMemo(() => {
-    if (!form.city) return cities;
-    const hasCurrent = cities.some((city) => city.text === form.city);
-    if (hasCurrent) return cities;
+  const cityOptions = useMemo(() => {
+    const options = cities.map((city) => ({
+      key: city.name,
+      value: city.name,
+    }));
+
+    if (!form.city) return options;
+    const hasCurrent = options.some((city) => city.value === form.city);
+    if (hasCurrent) return options;
 
     return [
-      ...cities,
+      ...options,
       {
-        id: -1,
-        text: form.city,
-        id_state: -1,
-        id_country: -1,
+        key: `custom-${form.city}`,
+        value: form.city,
       },
     ];
   }, [cities, form.city]);
@@ -96,8 +100,8 @@ const ArenaInfoTab = () => {
   useEffect(() => {
     let active = true;
 
-    const loadCountries = async () => {
-      const data = (await getDataCountrys()) as countryProps[];
+    const loadCountries = () => {
+      const data = Country.getAllCountries();
       if (!active) return;
       setCountries(Array.isArray(data) ? data : []);
     };
@@ -112,19 +116,16 @@ const ArenaInfoTab = () => {
   useEffect(() => {
     let active = true;
 
-    const loadCities = async () => {
+    const loadCities = () => {
       const selectedCountry = countries.find(
-        (item) => item.text === form.country,
+        (item) => item.name === form.country,
       );
       if (!selectedCountry) {
         setCities([]);
         return;
       }
 
-      const data = (await getDataCitysByCountry({
-        id: selectedCountry.id,
-        text: selectedCountry.text,
-      })) as cityProps[];
+      const data = City.getCitiesOfCountry(selectedCountry.isoCode);
 
       if (!active) return;
       setCities(Array.isArray(data) ? data : []);
@@ -161,13 +162,13 @@ const ArenaInfoTab = () => {
       }).unwrap();
 
       toast.success(
-        getSuccessMessage(response, "Arena info updated successfully."),
+        getSuccessMessage(response, t("arena.arenaInfoTab.updated")),
       );
 
       setDraft(null);
       setIsEditing(false);
     } catch (error) {
-      toast.error(getErrorMessage(error, "Failed to update arena info."));
+      toast.error(getErrorMessage(error, t("arena.arenaInfoTab.updateFailed")));
       // Keep edit mode open so user can retry.
     }
   };
@@ -176,7 +177,7 @@ const ArenaInfoTab = () => {
     return (
       <div className="py-10 flex items-center justify-center text-muted-foreground">
         <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-        Loading arena info...
+        {t("arena.arenaInfoTab.loading")}
       </div>
     );
   }
@@ -184,7 +185,7 @@ const ArenaInfoTab = () => {
   if (isError) {
     return (
       <div className="py-10 text-sm text-destructive">
-        Failed to load arena info.
+        {t("arena.arenaInfoTab.loadFailed")}
       </div>
     );
   }
@@ -194,11 +195,10 @@ const ArenaInfoTab = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-xl sm:text-2xl font-bold text-primary">
-            Tell Us About Your Field
+            {t("onboardingFields.arena.title")}
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
-            This information will be visible to players when they browse and
-            book sessions at your arena.
+            {t("onboardingFields.arena.subtitle")}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -209,7 +209,7 @@ const ArenaInfoTab = () => {
             onClick={handleToggleEdit}
           >
             <Pen className="w-4 h-4" />
-            {isEditing ? "Cancel Edit" : "Edit Information"}
+            {isEditing ? t("arena.cancelEdit") : t("arena.editInfo")}
           </Button>
           {isEditing && (
             <Button
@@ -224,7 +224,7 @@ const ArenaInfoTab = () => {
               ) : (
                 <Save className="w-4 h-4" />
               )}
-              Save
+              {t("arena.save")}
             </Button>
           )}
         </div>
@@ -233,10 +233,10 @@ const ArenaInfoTab = () => {
       <div className="space-y-5">
         <div className="space-y-2">
           <label className="text-sm font-medium text-primary">
-            Field / Arena Name
+            {t("onboardingFields.arena.nameLabel")}
           </label>
           <Input
-            placeholder="Enter arena name"
+            placeholder={t("onboardingFields.arena.namePlaceholder")}
             value={form.field_name}
             onChange={(event) =>
               setDraft((previous) =>
@@ -255,10 +255,10 @@ const ArenaInfoTab = () => {
 
         <div className="space-y-2">
           <label className="text-sm font-medium text-primary">
-            Description
+            {t("onboardingFields.arena.descLabel")}
           </label>
           <Textarea
-            placeholder="Describe your arena..."
+            placeholder={t("onboardingFields.arena.descPlaceholder")}
             value={form.description}
             onChange={(event) =>
               setDraft((previous) =>
@@ -277,7 +277,9 @@ const ArenaInfoTab = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-primary">Country</label>
+            <label className="text-sm font-medium text-primary">
+              {t("onboardingFields.arena.countryLabel")}
+            </label>
             <Select
               value={form.country}
               onValueChange={(value) =>
@@ -294,19 +296,21 @@ const ArenaInfoTab = () => {
               disabled={!isEditing}
             >
               <SelectTrigger className="w-full bg-input/30 border-white/10 text-primary h-11">
-                <SelectValue placeholder="Select country" />
+                <SelectValue placeholder={t("onboardingFields.arena.countryPlaceholder")} />
               </SelectTrigger>
               <SelectContent className="bg-card border-white/10">
-                {normalizedCountries.map((country) => (
-                  <SelectItem key={country.id} value={country.text}>
-                    {country.text}
+                {countryOptions.map((country) => (
+                  <SelectItem key={country.key} value={country.value}>
+                    {country.value}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium text-primary">City</label>
+            <label className="text-sm font-medium text-primary">
+              {t("onboardingFields.arena.cityLabel")}
+            </label>
             <Select
               value={form.city}
               onValueChange={(value) =>
@@ -322,12 +326,12 @@ const ArenaInfoTab = () => {
               disabled={!isEditing}
             >
               <SelectTrigger className="w-full bg-input/30 border-white/10 text-primary h-11">
-                <SelectValue placeholder="Select city" />
+                <SelectValue placeholder={t("onboardingFields.arena.cityPlaceholder")} />
               </SelectTrigger>
               <SelectContent className="bg-card border-white/10">
-                {normalizedCities.map((city) => (
-                  <SelectItem key={city.id} value={city.text}>
-                    {city.text}
+                {cityOptions.map((city) => (
+                  <SelectItem key={city.key} value={city.value}>
+                    {city.value}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -337,10 +341,10 @@ const ArenaInfoTab = () => {
 
         <div className="space-y-2">
           <label className="text-sm font-medium text-primary">
-            Full Address
+            {t("onboardingFields.arena.addressLabel")}
           </label>
           <Input
-            placeholder="Enter your full address"
+            placeholder={t("onboardingFields.arena.addressPlaceholder")}
             value={form.full_address}
             onChange={(event) =>
               setDraft((previous) =>
