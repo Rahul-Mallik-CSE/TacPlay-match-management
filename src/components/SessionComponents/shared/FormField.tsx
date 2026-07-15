@@ -9,8 +9,8 @@ type FormFieldProps = {
 };
 
 const FormField: React.FC<FormFieldProps> = ({ label, children, className }) => (
-  <div className={`space-y-1.5 ${className ?? ""}`}>
-    <label className="text-sm text-primary font-medium">{label}</label>
+  <div className={`w-full space-y-1.5 ${className ?? ""}`}>
+    <label className="block text-sm text-primary font-medium">{label}</label>
     {children}
   </div>
 );

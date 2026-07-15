@@ -57,7 +57,7 @@ const TeamsCapacityFields: React.FC<TeamsCapacityFieldsProps> = ({
             type="number"
             min={1}
             placeholder={t("sessions.create.enterTeamAPlayers")}
-            className="form-input-style"
+            className="form-input-style w-full p-1.5"
             value={form.team_a_player}
             onChange={(e) => onFieldChange("team_a_player", e.target.value)}
           />
@@ -67,7 +67,7 @@ const TeamsCapacityFields: React.FC<TeamsCapacityFieldsProps> = ({
             type="number"
             min={1}
             placeholder={t("sessions.create.enterTeamBPlayers")}
-            className="form-input-style"
+            className="form-input-style w-full p-1.5"
             value={form.team_b_player}
             onChange={(e) => onFieldChange("team_b_player", e.target.value)}
           />
@@ -94,7 +94,7 @@ const TeamsCapacityFields: React.FC<TeamsCapacityFieldsProps> = ({
               <input
                 type="text"
                 placeholder={t("sessions.create.enterTeamAName")}
-                className="form-input-style"
+                className="form-input-style w-full p-1.5"
                 value={form.team_a_name}
                 onChange={(e) => onFieldChange("team_a_name", e.target.value)}
               />
@@ -103,7 +103,7 @@ const TeamsCapacityFields: React.FC<TeamsCapacityFieldsProps> = ({
               <input
                 type="text"
                 placeholder={t("sessions.create.enterTeamBName")}
-                className="form-input-style"
+                className="form-input-style w-full p-1.5"
                 value={form.team_b_name}
                 onChange={(e) => onFieldChange("team_b_name", e.target.value)}
               />

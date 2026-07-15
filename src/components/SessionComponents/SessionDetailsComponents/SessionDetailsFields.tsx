@@ -42,7 +42,7 @@ const SessionDetailsFields: React.FC<SessionDetailsFieldsProps> = ({
         <input
           type="text"
           placeholder={t("sessions.create.enterSessionName")}
-          className="form-input-style"
+          className="form-input-style w-full p-1.5"
           value={form.session_name}
           onChange={(e) => onFieldChange("session_name", e.target.value)}
         />
@@ -78,7 +78,7 @@ const SessionDetailsFields: React.FC<SessionDetailsFieldsProps> = ({
         <textarea
           rows={4}
           placeholder={t("sessions.create.enterDescription")}
-          className="form-input-style resize-none min-h-24"
+          className="form-input-style w-full resize-none min-h-24 p-1.5"
           value={form.description}
           onChange={(e) => onFieldChange("description", e.target.value)}
         />

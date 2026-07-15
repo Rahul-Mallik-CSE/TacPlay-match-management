@@ -49,7 +49,7 @@ const DateTimeFields: React.FC<DateTimeFieldsProps> = ({
           <input
             ref={matchDateRef}
             type="date"
-            className="form-input-style pr-10"
+            className="form-input-style w-full pr-10 p-1.5"
             value={form.match_date}
             onChange={(e) => onFieldChange("match_date", e.target.value)}
           />
@@ -71,7 +71,7 @@ const DateTimeFields: React.FC<DateTimeFieldsProps> = ({
               ref={startTimeRef}
               type="time"
               step={60}
-              className="form-input-style pr-10"
+              className="form-input-style w-full pr-10 p-1.5"
               value={form.start_time}
               onChange={(e) => onFieldChange("start_time", e.target.value)}
             />
@@ -91,7 +91,7 @@ const DateTimeFields: React.FC<DateTimeFieldsProps> = ({
               ref={endTimeRef}
               type="time"
               step={60}
-              className="form-input-style pr-10"
+              className="form-input-style w-full pr-10 p-1.5"
               value={form.end_time}
               onChange={(e) => onFieldChange("end_time", e.target.value)}
             />
@@ -109,7 +109,7 @@ const DateTimeFields: React.FC<DateTimeFieldsProps> = ({
 
       <FormField label={t("sessions.create.duration")}>
         <div className="relative">
-          <input type="text" value={durationDisplay} className="form-input-style pr-10" readOnly />
+          <input type="text" value={durationDisplay} className="form-input-style w-full pr-10" readOnly />
           <Clock className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary" />
         </div>
       </FormField>
@@ -120,7 +120,7 @@ const DateTimeFields: React.FC<DateTimeFieldsProps> = ({
             type="number"
             min={1}
             placeholder={t("sessions.create.enterCutOffValue")}
-            className="form-input-style flex-1"
+            className="form-input-style w-full flex-1"
             value={form.booking_cut_off_time}
             onChange={(e) => onFieldChange("booking_cut_off_time", e.target.value)}
           />

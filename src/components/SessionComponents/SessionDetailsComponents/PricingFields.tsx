@@ -26,7 +26,7 @@ const PricingFields: React.FC<PricingFieldsProps> = ({ form, onFieldChange }) =>
           type="number"
           min={0}
           placeholder={t("sessions.create.enterEntryFee")}
-          className="form-input-style"
+          className="form-input-style w-full p-1.5"
           value={form.entry_fee}
           onChange={(e) => onFieldChange("entry_fee", e.target.value)}
         />
