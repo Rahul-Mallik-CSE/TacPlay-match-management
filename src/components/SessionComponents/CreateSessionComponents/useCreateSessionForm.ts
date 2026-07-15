@@ -82,8 +82,6 @@ export function useCreateSessionForm() {
   const teamARef = useRef<HTMLInputElement>(null);
   const teamBRef = useRef<HTMLInputElement>(null);
   const matchDateRef = useRef<HTMLInputElement>(null);
-  const startTimeRef = useRef<HTMLInputElement>(null);
-  const endTimeRef = useRef<HTMLInputElement>(null);
 
   const handleFieldChange = useCallback(
     <T extends keyof CreateSessionForm>(key: T, value: CreateSessionForm[T]) => {
@@ -193,8 +191,6 @@ export function useCreateSessionForm() {
     teamARef,
     teamBRef,
     matchDateRef,
-    startTimeRef,
-    endTimeRef,
     durationDisplay,
     handleFieldChange,
     handleTeamAUpload,

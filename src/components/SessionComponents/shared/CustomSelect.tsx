@@ -45,7 +45,10 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
             <button
               key={option.value}
               type="button"
-              onClick={() => onSelect(option.value)}
+              onClick={() => {
+                onSelect(option.value);
+                onToggle();
+              }}
               className="w-full px-3.5 py-2 text-sm text-primary/80 hover:bg-muted/50 text-left transition-colors"
             >
               {option.label}

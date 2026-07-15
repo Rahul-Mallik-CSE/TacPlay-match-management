@@ -13,18 +13,6 @@ import DateTimeFields from "@/components/SessionComponents/SessionDetailsCompone
 import TeamsCapacityFields from "@/components/SessionComponents/SessionDetailsComponents/TeamsCapacityFields";
 import PricingFields from "@/components/SessionComponents/SessionDetailsComponents/PricingFields";
 
-const openNativePicker = (inputRef: React.RefObject<HTMLInputElement | null>) => {
-  const input = inputRef.current;
-  if (!input) return;
-  const pickerInput = input as HTMLInputElement & { showPicker?: () => void };
-  if (typeof pickerInput.showPicker === "function") {
-    pickerInput.showPicker();
-    return;
-  }
-  input.focus();
-  input.click();
-};
-
 const CreateSessionContent = () => {
   const { t } = useTranslation("dashboard");
 
@@ -36,8 +24,6 @@ const CreateSessionContent = () => {
     teamARef,
     teamBRef,
     matchDateRef,
-    startTimeRef,
-    endTimeRef,
     durationDisplay,
     handleFieldChange,
     handleTeamAUpload,
@@ -99,9 +85,6 @@ const CreateSessionContent = () => {
             onCutOffUnitToggle={() => setCutOffUnitOpen(!cutOffUnitOpen)}
             selectOptions={selectOptions}
             matchDateRef={matchDateRef}
-            startTimeRef={startTimeRef}
-            endTimeRef={endTimeRef}
-            onOpenNativePicker={openNativePicker}
           />
 
           <TeamsCapacityFields
@@ -157,12 +140,10 @@ const CreateSessionContent = () => {
         .form-input-style:focus {
           border-color: rgba(152, 0, 9, 0.5);
         }
-        .form-input-style[type="date"],
-        .form-input-style[type="time"] {
+        .form-input-style[type="date"] {
           color-scheme: dark;
         }
-        .form-input-style[type="date"]::-webkit-calendar-picker-indicator,
-        .form-input-style[type="time"]::-webkit-calendar-picker-indicator {
+        .form-input-style[type="date"]::-webkit-calendar-picker-indicator {
           opacity: 0;
           cursor: pointer;
         }

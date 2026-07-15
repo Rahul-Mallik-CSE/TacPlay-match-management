@@ -3,10 +3,11 @@
 "use client";
 
 import React from "react";
-import { Calendar, Clock, Clock3 } from "lucide-react";
+import { Calendar, Clock } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import FormField from "../shared/FormField";
 import CustomSelect from "../shared/CustomSelect";
+import TimePicker from "../shared/TimePicker";
 import type { EditSessionForm } from "../useSessionForm";
 
 type DateTimeFieldsProps = {
@@ -19,9 +20,6 @@ type DateTimeFieldsProps = {
     bookingCutOffUnit: readonly { label: string; value: string }[];
   };
   matchDateRef: React.RefObject<HTMLInputElement | null>;
-  startTimeRef: React.RefObject<HTMLInputElement | null>;
-  endTimeRef: React.RefObject<HTMLInputElement | null>;
-  onOpenNativePicker: (ref: React.RefObject<HTMLInputElement | null>) => void;
 };
 
 const DateTimeFields: React.FC<DateTimeFieldsProps> = ({
@@ -32,9 +30,6 @@ const DateTimeFields: React.FC<DateTimeFieldsProps> = ({
   onCutOffUnitToggle,
   selectOptions,
   matchDateRef,
-  startTimeRef,
-  endTimeRef,
-  onOpenNativePicker,
 }) => {
   const { t } = useTranslation("dashboard");
 
@@ -49,15 +44,14 @@ const DateTimeFields: React.FC<DateTimeFieldsProps> = ({
           <input
             ref={matchDateRef}
             type="date"
-            className="form-input-style w-full pr-10 p-1.5"
+            className="form-input-style w-full pr-10 pl-1.5 py-1.5"
             value={form.match_date}
             onChange={(e) => onFieldChange("match_date", e.target.value)}
           />
           <button
             type="button"
             aria-label={t("sessions.create.openDatePicker")}
-            onClick={() => onOpenNativePicker(matchDateRef)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary hover:text-primary transition-colors"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary hover:text-primary transition-colors pointer-events-none pr-9"
           >
             <Calendar className="w-4 h-4" />
           </button>
@@ -66,50 +60,22 @@ const DateTimeFields: React.FC<DateTimeFieldsProps> = ({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FormField label={t("sessions.create.startTime")}>
-          <div className="relative">
-            <input
-              ref={startTimeRef}
-              type="time"
-              step={60}
-              className="form-input-style w-full pr-10 p-1.5"
-              value={form.start_time}
-              onChange={(e) => onFieldChange("start_time", e.target.value)}
-            />
-            <button
-              type="button"
-              aria-label={t("sessions.create.openStartTimePicker")}
-              onClick={() => onOpenNativePicker(startTimeRef)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary hover:text-primary transition-colors"
-            >
-              <Clock3 className="w-4 h-4" />
-            </button>
-          </div>
+          <TimePicker
+            value={form.start_time}
+            onChange={(v) => onFieldChange("start_time", v)}
+          />
         </FormField>
         <FormField label={t("sessions.create.endTime")}>
-          <div className="relative">
-            <input
-              ref={endTimeRef}
-              type="time"
-              step={60}
-              className="form-input-style w-full pr-10 p-1.5"
-              value={form.end_time}
-              onChange={(e) => onFieldChange("end_time", e.target.value)}
-            />
-            <button
-              type="button"
-              aria-label={t("sessions.create.openEndTimePicker")}
-              onClick={() => onOpenNativePicker(endTimeRef)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary hover:text-primary transition-colors"
-            >
-              <Clock3 className="w-4 h-4" />
-            </button>
-          </div>
+          <TimePicker
+            value={form.end_time}
+            onChange={(v) => onFieldChange("end_time", v)}
+          />
         </FormField>
       </div>
 
       <FormField label={t("sessions.create.duration")}>
         <div className="relative">
-          <input type="text" value={durationDisplay} className="form-input-style w-full pr-10" readOnly />
+          <input type="text" value={durationDisplay} className="form-input-style w-full pr-10 pl-1.5 py-1.5" readOnly />
           <Clock className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary" />
         </div>
       </FormField>
